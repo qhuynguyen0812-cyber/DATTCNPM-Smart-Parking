@@ -1,0 +1,33 @@
+.halloween-spider {
+  position: fixed; left: 0; top: 0; z-index: 30; width: 68px; height: 68px;
+  display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%;
+  background: transparent; cursor: pointer; touch-action: manipulation;
+  will-change: transform; filter: drop-shadow(0 4px 4px #68476130);
+}
+.halloween-spider svg { width: 100%; height: 100%; overflow: visible; }
+.halloween-spider:focus-visible { outline: 2px dashed #a86d47; outline-offset: 4px; }
+.halloween-spider:hover { filter: drop-shadow(0 0 7px #d59cca88); }
+.halloween-spider.is-hugging { opacity: 0; pointer-events: none; }
+.halloween-spider.is-resting::after { content: 'Zzz'; position: absolute; right: -8px; top: -4px; color: #a16c81; font: 16px var(--font-pixel); }
+.halloween-spider.is-crawling .spider-leg-a { animation: spiderStep .32s steps(2) infinite alternate; transform-origin: center; }
+.halloween-spider.is-crawling .spider-leg-b { animation: spiderStep .32s steps(2) -.32s infinite alternate-reverse; transform-origin: center; }
+@keyframes spiderStep { to { transform: translateY(3px); } }
+.spider-hug { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; }
+.spider-hug-stage { position: absolute; inset: 0; background: radial-gradient(ellipse at center,#f8d6b326,transparent 70%); animation: spiderScreenHug 3.4s ease-in-out both; }
+.spider-hug-legs { position: absolute; inset: 0; width: 100%; height: 100%; filter: drop-shadow(0 5px 3px #57394926); }
+.spider-hug-body { position: absolute; width: clamp(150px,26vw,340px); left: 50%; top: 50%; transform: translate(-50%,-50%); filter: drop-shadow(0 12px 18px #68415e33); }
+.spider-hug-body svg { display: block; width: 100%; overflow: visible; }
+.spider-hug-body .spider-leg-a, .spider-hug-body .spider-leg-b { display: none; }
+.spider-hug-heart { position: absolute; left: 50%; top: calc(50% - clamp(100px,15vw,200px)); transform: translateX(-50%); font-size: clamp(28px,5vw,58px); color: #bb6484; text-shadow: 0 0 24px #ffc7cf; }
+.spider-hug-caption { position: absolute; left: 50%; top: calc(50% + clamp(90px,13vw,170px)); transform: translateX(-50%); padding: 9px 16px; white-space: nowrap; background: #fff6e7ee; border: 1px solid #d6b4b2; border-radius: 12px; color: #785066; font: 24px var(--font-pixel); box-shadow: 0 5px 20px #8d65851f; }
+@keyframes spiderScreenHug {
+  0% { opacity: 0; transform: translate(var(--hug-x,0px),var(--hug-y,0px)) scale(.07); }
+  4% { opacity: 1; transform: translate(0,0) scale(1.04); }
+  12%,78% { opacity: 1; transform: translate(0,0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--hug-x,0px),var(--hug-y,0px)) scale(.07); }
+}
+.spider-hug.is-still .spider-hug-stage { animation: none; }
+[data-theme="dark"] .halloween-spider, [data-theme="dark"] .spider-hug { display: none; }
+.motion-paused .halloween-spider * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .halloween-spider *, .spider-hug-stage { animation: none !important; } }
+@media (max-width: 700px) { .halloween-spider { width: 56px; height: 56px; }.spider-hug-caption { font-size: 20px; } }

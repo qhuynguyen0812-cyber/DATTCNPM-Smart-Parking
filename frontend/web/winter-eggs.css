@@ -1,0 +1,32 @@
+.winter-secret-logo { border: 0; padding: 0; }
+.winter-secret-logo:focus-visible { outline: 2px solid #b8ecff; outline-offset: 4px; }
+[data-theme="dark"] .winter-secret-logo:hover { filter: brightness(1.12); }
+.car-easter-hit { position: absolute; inset: 25% 3% 9% 6%; border: 0; padding: 0; background: transparent; pointer-events: auto; border-radius: 12px; }
+.car-easter-hit:focus-visible { outline: 2px dashed #c5f3ff; outline-offset: 4px; }
+.turbo-caption { display: none; position: absolute; left: 36%; top: 18%; font: 24px var(--font-pixel); color: #d1fcff; text-shadow: 2px 2px #34426e, 0 0 14px #90efff; }
+.turbo-snow { position: absolute; left: 12%; top: 77%; pointer-events: none; }
+.turbo-snow i { display: none; position: absolute; width: var(--spray-size); height: var(--spray-size); background: #e5faff; box-shadow: 0 0 7px #96e5ff88; }
+.winter-turbo .turbo-caption { display: block; animation: turboLabel 3s ease-out both; }
+.winter-turbo .turbo-snow i { display: block; animation: turboSpray .8s var(--spray-delay) ease-out infinite both; }
+.winter-turbo .road-markings { animation-duration: .2s; }
+.winter-turbo .pixel-foreground { animation-duration: .16s; }
+.winter-turbo .pixel-landscape { animation-duration: 12s; }
+.winter-turbo .car { filter: drop-shadow(0 0 12px #7adffc88); animation-duration: .18s; }
+.winter-turbo .car-headlight { background: linear-gradient(90deg, #e9fbff66, transparent); }
+@keyframes turboSpray { from { opacity: 0; transform: translate(0,0); } 15% { opacity: .95; } to { opacity: 0; transform: translate(-110px,var(--spray-y)); } }
+@keyframes turboLabel { from { opacity: 0; transform: translateY(8px); } 15%,80% { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
+.winter-secret { position: fixed; bottom: 22px; right: 28px; z-index: 20; display: grid; justify-items: center; gap: 4px; pointer-events: none; animation: secretArrives .45s ease-out both; }
+.winter-secret img { width: clamp(96px,12vw,160px); height: auto; image-rendering: pixelated; filter: drop-shadow(0 0 18px #9ae6ff66); }
+.winter-secret span { padding: 8px 12px; border: 1px solid #779dbb; border-radius: 9px; background: #162b44ed; color: #d9f6ff; font: 20px var(--font-pixel); box-shadow: 0 6px 25px #07132444; }
+.winter-aurora { position: fixed; inset: 0 0 auto; height: 45vh; z-index: 8; pointer-events: none; background: radial-gradient(ellipse at 23% 0%,#83efd535,transparent 55%),radial-gradient(ellipse at 68% 0%,#c3adff30,transparent 60%); animation: auroraShimmer 4s ease-in-out infinite alternate; }
+@keyframes secretArrives { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes auroraShimmer { to { opacity: .6; transform: scaleX(1.08); } }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+[data-theme="light"] .winter-secret, [data-theme="light"] .winter-aurora { display: none; }
+@media (max-width: 700px) { .winter-secret { bottom: 16px; right: 16px; }.winter-secret span { font-size: 17px; }.turbo-caption { font-size: 20px; } }
+.motion-paused .winter-secret, .motion-paused .winter-aurora, .motion-paused .turbo-caption, .motion-paused .turbo-snow i { animation: none !important; }
+.motion-paused .turbo-snow { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .winter-secret, .winter-aurora, .turbo-caption, .turbo-snow i { animation: none !important; }
+  .turbo-snow { display: none; }
+}

@@ -1,0 +1,15 @@
+# Web app (FastAPI backend + static SPA frontend).
+# Local OCR engines are optional — the app degrades gracefully without them.
+fastapi
+uvicorn
+pandas
+numpy
+pillow
+python-multipart
+python-dotenv
+openai
+
+# Optional local OCR fallback (install separately if needed):
+# opencv-python
+# fast-alpr[onnx]
+# easyocr

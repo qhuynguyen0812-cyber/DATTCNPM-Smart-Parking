@@ -1,0 +1,25 @@
+.camera-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.camera-actions .btn { flex: 1; min-height: 44px; }
+.camera-panel { margin-top: 16px; padding: 14px; border: 1px solid #44617d; border-radius: 12px; background: #12243a; }
+.camera-panel label { display: grid; gap: 7px; margin-bottom: 12px; font-size: 12px; color: #b6cde3; }
+.camera-panel select { width: 100%; min-height: 40px; border: 1px solid #506983; border-radius: 8px; padding: 8px; background: #0e1c30; color: #e3f1ff; }
+.camera-feed { position: relative; overflow: hidden; border-radius: 9px; background: #08121f; aspect-ratio: 16 / 9; }
+.camera-feed video { display: block; width: 100%; height: 100%; object-fit: contain; }
+.camera-guide { position: absolute; inset: 32% 18%; border: 2px dashed #d9f5ffbb; border-radius: 9px; box-shadow: 0 0 0 100vmax #06122020; pointer-events: none; }
+.camera-message { min-height: 20px; margin: 12px 0 6px; font-size: 12px; line-height: 1.6; color: #bcd1e4; }
+.camera-message.camera-error { color: #ffc3cd; }
+.camera-tip { font-size: 11px; line-height: 1.7; color: #8eaac4; margin: 0; }
+.camera-panel .camera-actions { margin-top: 12px; }
+.camera-scan { margin-top: 14px; }
+.camera-scan-result { margin-top: 12px; padding: 14px; border-radius: 10px; border: 1px solid #53627c; background: #172943; color: #d5e8fa; font-size: 12px; line-height: 1.7; }
+.camera-scan-result .plate { display: inline-block; margin-right: 8px; }
+.camera-scan-result p { margin: 7px 0 0; }
+[data-theme="light"] .camera-panel { background: #fff4e6; border-color: #ddc0b7; }
+[data-theme="light"] .camera-panel label { color: #78596c; }
+[data-theme="light"] .camera-panel select { background: #fffbf3; border-color: #dcc4bd; color: #64485f; }
+[data-theme="light"] .camera-message { color: #79596b; }
+[data-theme="light"] .camera-message.camera-error { color: #a14763; }
+[data-theme="light"] .camera-tip { color: #977385; }
+[data-theme="light"] .camera-scan-result { color: #775669; background: #fff6e9; border-color: #dfc1b5; }
+.camera-actions button:focus-visible, .camera-panel select:focus-visible { outline: 2px solid #ba9cdd; outline-offset: 3px; }
+@media (max-width: 700px) { .camera-actions .btn { font-size: 12px; }.camera-panel { padding: 10px; }.camera-feed { aspect-ratio: 4 / 3; } }

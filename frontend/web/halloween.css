@@ -1,0 +1,179 @@
+/* Shared theme controls; dark winter remains the default. */
+.login-theme-control { position: absolute; top: 28px; right: 32px; z-index: 5; display: flex; gap: 4px; padding: 5px; border-radius: 12px; border: 1px solid #547594; background: #12263dd9; backdrop-filter: blur(12px); box-shadow: 0 8px 24px #04122526; }
+.login-theme-control button { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; min-height: 38px; color: #acc7df; background: transparent; border: 1px solid transparent; border-radius: 8px; font-size: 12px; font-weight: 700; }
+.login-theme-control button svg { width: 17px; height: 17px; }
+.login-theme-control button[aria-pressed="true"] { color: #14283d; background: linear-gradient(105deg, #a4e5ed, #b5c8ff); border-color: #d5f5ff; }
+.login-theme-control button:focus-visible, .theme-toggle:focus-visible { outline: 3px solid #acc8fa; outline-offset: 3px; }
+.theme-toggle { width: 38px; height: 38px; min-height: 38px; padding: 9px; color: #efd6a7; background: #28344d; border: 1px solid #53617c; }
+.theme-toggle:hover { background: #374561; }
+.topbar-right { gap: 10px; }
+@media (min-width: 1001px) and (max-width: 1120px) {
+  .topbar { grid-template-columns: minmax(0, 1fr) auto; row-gap: 14px; }
+  .topbar-project { grid-column: 1 / -1; grid-row: 2; font-size: 25px; padding-top: 12px; border-top: 1px solid #2a4059; }
+  .topbar-right { grid-column: 2; grid-row: 1; }
+}
+
+/* Light Halloween: cream paper, pumpkin accents, plum ink. */
+.pumpkin-corner { display: none; }
+[data-theme="light"] .pumpkin-corner {
+  display: block; position: absolute; right: 12px; bottom: 12px; z-index: 2;
+  width: clamp(260px, 40vw, 600px); max-width: 48%; pointer-events: none;
+}
+.pumpkin-corner svg { display: block; width: 100%; height: auto; max-height: 22svh; }
+.pumpkin-eyes { filter: drop-shadow(0 0 2px #fff39c) drop-shadow(0 0 5px #ffb928); animation: pumpkinEyeGlow 2.8s ease-in-out infinite; }
+@keyframes pumpkinEyeGlow { 0%,100% { opacity: .88; } 50% { opacity: 1; filter: drop-shadow(0 0 3px #fff7bd) drop-shadow(0 0 8px #ffa91f); } }
+.pumpkin-glimmer { animation: pumpkinGlow 3.2s ease-in-out infinite; }
+.pumpkin-sparkles { animation: pumpkinGlow 4s ease-in-out 1s infinite reverse; }
+@keyframes pumpkinGlow { 0%,100% { opacity: .65; } 50% { opacity: 1; } }
+@media (max-width: 700px) {
+  [data-theme="light"] .pumpkin-corner { width: 300px; max-width: 78%; right: 8px; bottom: 12px; }
+  .pumpkin-corner svg { max-height: 120px; }
+  [data-theme="light"] .login-wrap { padding-bottom: 140px; }
+}
+@media (max-height: 550px) and (min-width: 701px) {
+  [data-theme="light"] .pumpkin-corner { max-width: 30%; right: 4px; bottom: 4px; }
+}
+.motion-paused .pumpkin-corner * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .pumpkin-corner * { animation: none !important; } }
+html[data-theme="light"] { color-scheme: light; --text: #513e5c; --muted: #896d80; --surface: #fffaf4; --border: #e3d1c9; --primary: #a85e41; }
+[data-theme="light"] body { background: #fcf1e3; color: #513e5c; }
+[data-theme="light"] .app { color: #543f5d; background: radial-gradient(ellipse at 82% 0%, #ffe8c8 0%, transparent 50%), radial-gradient(ellipse at 12% 100%, #ece1f4 0%, transparent 54%), #fcf4e9; }
+[data-theme="light"] .app::before { background-image: linear-gradient(#a16f6b07 1px, transparent 1px), linear-gradient(90deg, #a16f6b07 1px, transparent 1px); }
+[data-theme="light"] .sidebar { background: linear-gradient(180deg, #fff6e9f5, #f5e8e8f5); border-color: #ddc7c8; }
+[data-theme="light"] .side-logo, [data-theme="light"] .login-logo { color: #663f51; background: linear-gradient(135deg, #ffd199, #d8b8e8); box-shadow: inset 0 2px #ffffffb3, 0 5px 20px #e5b99540; }
+[data-theme="light"] .side-title { color: #503551; }
+[data-theme="light"] .side-sub { color: #846478; }
+[data-theme="light"] .nav-item { color: #6a4b64; background: #fffaf4; border-color: #e5cfc5; box-shadow: 0 3px 10px #9b718007; }
+[data-theme="light"] .nav-icon { color: #a7776d; }
+[data-theme="light"] .nav-item:not(.active):hover { color: #593a55; background: #f7e6d4; border-color: #d8ae9c; }
+[data-theme="light"] .nav-item.active { color: #643d49; background: linear-gradient(105deg, #ffc88e, #efd0b4); border-color: #e9aa7c; box-shadow: inset 4px 0 #fff5d5, 0 5px 20px #d3956224; }
+[data-theme="light"] .nav-item.active .nav-icon { color: #845443; }
+[data-theme="light"] .nav-badge { color: #7b4260; background: #ead0e1; }
+[data-theme="light"] .side-user { border-color: #ddc6ca; }
+[data-theme="light"] .side-user-name { color: #593b57; }
+[data-theme="light"] .side-user-role { color: #89667b; }
+[data-theme="light"] .user-avatar { color: #78598d; background: #e9daee; border-color: #cbb5d7; }
+[data-theme="light"] .side-user .btn { color: #75546c; border-color: #d9bec7; }
+[data-theme="light"] .sidebar-winter { background: #f6d7bc; border-color: #d6b3b2; box-shadow: 0 5px 15px #aa7c830c; }
+[data-theme="light"] .sidebar-winter img { opacity: 1; }
+[data-theme="light"] .winter-caption { color: #765064; border-color: #d8b99f; background: #fff0d9dd; font-size: 11px; }
+[data-theme="light"] .topbar { background: #fffaf0cc; border-color: #e4d0c8; box-shadow: 0 2px 15px #ad7f6606; }
+[data-theme="light"] .topbar h2 { color: #573852; }
+[data-theme="light"] .topbar-eyebrow { color: #9a7785; }
+[data-theme="light"] .topbar-project { color: #a66245; text-shadow: 0 0 22px #f6b87830; border-color: #e4d0c8; }
+[data-theme="light"] .topbar-project::before, [data-theme="light"] .topbar-project::after { background: #b49ac5; box-shadow: 0 5px #b49ac533, 5px 0 #b49ac533; }
+[data-theme="light"] .clock { color: #9a6d84; }
+[data-theme="light"] .winter-toggle, [data-theme="light"] .btn-refresh, [data-theme="light"] .theme-toggle { color: #a07883; background: #fff3e5; border-color: #ddc7bc; box-shadow: inset 0 1px #fff; }
+[data-theme="light"] .theme-toggle { color: #8f6da6; background: #f1e6f6; border-color: #d8c2e2; }
+[data-theme="light"] .winter-toggle:hover, [data-theme="light"] .btn-refresh:hover { background: #f5e6d8; color: #735064; }
+[data-theme="light"] .theme-toggle:hover { background: #e9d9f0; }
+[data-theme="light"] .winter-toggle[aria-pressed="true"] { color: #93632f; background: #f5dfc3; border-color: #d8b185; }
+[data-theme="light"] .card { color: #67536b; background: linear-gradient(145deg, #fffcf7ee, #fff7f0eb); border-color: #e3d0c9; box-shadow: inset 0 1px #ffffff, 0 8px 28px #9e72790a; }
+[data-theme="light"] .card h3 { color: #65445e; }
+[data-theme="light"] .winter-banner { background: linear-gradient(110deg, #ffe7c8, #efdaeb 70%); border-color: #e4c0aa; box-shadow: inset 0 1px #fff, 0 7px 24px #c89a780e; }
+[data-theme="light"] .winter-label { color: #965d43; background: #ffefd5; border-color: #e9c092; }
+[data-theme="light"] .banner-copy h2 { color: #724858; }
+[data-theme="light"] .banner-copy p { color: #9a7284; }
+[data-theme="light"] .banner-spark { color: #c79370; box-shadow: 6px 0 currentColor, -6px 0 currentColor, 0 6px currentColor, 0 -6px currentColor, 50px 58px #b895d0; }
+[data-theme="light"] .stat:nth-child(1) { background: linear-gradient(135deg, #fff0dbee, #fffaf4eb); border-color: #e8c8a6; }
+[data-theme="light"] .stat:nth-child(2) { background: linear-gradient(135deg, #f1e5f7ee, #fff9f7eb); border-color: #d9c5e4; }
+[data-theme="light"] .stat:nth-child(3) { background: linear-gradient(135deg, #edf0dfee, #fffcf0eb); border-color: #cfd9b8; }
+[data-theme="light"] .stat:nth-child(4) { background: linear-gradient(135deg, #fbe0daee, #fff8f1eb); border-color: #e9bfb8; }
+[data-theme="light"] .stat::after { background: #d7a475; box-shadow: -8px 0 #d7a47533, 0 -8px #d7a47533; }
+[data-theme="light"] .stat:nth-child(2)::after { background: #b797d1; box-shadow: -8px 0 #b797d133, 0 -8px #b797d133; }
+[data-theme="light"] .stat:nth-child(3)::after { background: #9cad7c; box-shadow: -8px 0 #9cad7c33, 0 -8px #9cad7c33; }
+[data-theme="light"] .stat:nth-child(4)::after { background: #d99085; box-shadow: -8px 0 #d9908533, 0 -8px #d9908533; }
+[data-theme="light"] .stat-label { color: #8e6c7b; }
+[data-theme="light"] .stat-value { color: #62475f; text-shadow: none; }
+[data-theme="light"] .blue { color: #b07b47; background: #ffebcd; }
+[data-theme="light"] .purple { color: #a580b5; background: #efe2f6; }
+[data-theme="light"] .green { color: #869663; background: #edf1d8; }
+[data-theme="light"] .orange { color: #c28473; background: #fae3d6; }
+[data-theme="light"] .stat-icon, [data-theme="light"] .action-icon { box-shadow: inset 0 2px #ffffffb3; }
+[data-theme="light"] .quick-action { color: #745069; background: linear-gradient(110deg, #fffaf0, #fbf1f5); border-color: #e4caca; box-shadow: inset 0 1px #fff; }
+[data-theme="light"] .quick-action:hover { background: #fff1df; border-color: #d3ab91; box-shadow: 0 8px 24px #a5797c10; }
+[data-theme="light"] .quick-action small { color: #9b7889; }
+[data-theme="light"] .quick-action > svg { color: #ba94a5; }
+[data-theme="light"] .system-row { border-color: #eee0d7; color: #927183; }
+[data-theme="light"] .system-row strong { color: #69506b; }
+[data-theme="light"] .status-dot { background: #9bac7a; box-shadow: 0 0 0 4px #bccb9626; }
+[data-theme="light"] .status-dot.warning { background: #dba56d; box-shadow: 0 0 0 4px #efc58d26; }
+[data-theme="light"] .updated-at { color: #a88b98; }
+[data-theme="light"] .count-chip, [data-theme="light"] .step-chip { color: #94709b; background: #f2e5f0; border-color: #dbc4dd; }
+[data-theme="light"] th { color: #927183; background: #fdf3e9; border-color: #e6d3cb; }
+[data-theme="light"] td { color: #7c627d; border-color: #f0e3dc; }
+[data-theme="light"] tbody tr:hover { background: #fff1e2; }
+[data-theme="light"] .ticket-id, [data-theme="light"] .plate { color: #70506e; }
+[data-theme="light"] .time-cell { color: #9a7b90; }
+[data-theme="light"] .badge.success { color: #71814d; background: #eef1df; border-color: #d7dfba; }
+[data-theme="light"] .badge.warning { color: #a36e37; background: #fff0d6; border-color: #edd1a7; }
+[data-theme="light"] .badge.danger { color: #ac6b7a; background: #f9e3e9; border-color: #e9bdcb; }
+[data-theme="light"] .badge.info { color: #967446; background: #fff0dc; border-color: #e8d1ac; }
+[data-theme="light"] .badge.neutral { color: #91709e; background: #f0e5f2; border-color: #dbc7e4; }
+[data-theme="light"] .btn-primary { color: #654039; background: linear-gradient(105deg, #ffc58a, #f4c4a7); box-shadow: inset 0 1px #fff1d7, 0 5px 18px #e8aa7c24; }
+[data-theme="light"] .btn-primary:hover { background: linear-gradient(105deg, #ffb871, #eeb397); }
+[data-theme="light"] .btn-soft { color: #987096; background: #f3e7ef; border-color: #dbc4d9; }
+[data-theme="light"] .btn-soft:hover { background: #ead8e8; }
+[data-theme="light"] .btn-ghost:hover { color: #684c65; background: #efdfdf; }
+[data-theme="light"] .btn-success { color: #7a894f; background: #edf0d9; border-color: #d5deb5; }
+[data-theme="light"] .btn-warning { color: #a77943; background: #ffedcf; border-color: #eccb9b; }
+[data-theme="light"] .btn-danger { color: #b17384; background: #f8e4eb; border-color: #e8c0cf; }
+[data-theme="light"] .text-btn { color: #b17f6d; }
+[data-theme="light"] .form-row label { color: #856477; }
+[data-theme="light"] .form-row input, [data-theme="light"] .form-row select, [data-theme="light"] .role-select { color: #674861; background: #fffaf3; border-color: #ddc4bc; color-scheme: light; }
+[data-theme="light"] .form-row input::placeholder { color: #ad8a99; }
+[data-theme="light"] .form-row input:focus, [data-theme="light"] .form-row select:focus, [data-theme="light"] .role-select:focus { border-color: #d6a074; box-shadow: 0 0 0 3px #e8b88d26; }
+[data-theme="light"] .optional, [data-theme="light"] .field-help { color: #a38697; }
+[data-theme="light"] .drop-zone { color: #a08096; background: linear-gradient(145deg, #fff2df, #f7edf7); border-color: #d5b4bf; }
+[data-theme="light"] .drop-zone::before { background: #d2a1a650; box-shadow: -60px 44px #c9aad74d, -140px -4px #d2a1a64d, -230px 170px #d2a1a64d; }
+[data-theme="light"] .drop-zone > svg { color: #bd8b6f; background: #ffead5; border-color: #e6c2a5; }
+[data-theme="light"] .drop-zone strong { color: #a27069; }
+[data-theme="light"] .drop-zone small { color: #ae8c9b; }
+[data-theme="light"] .drop-zone:hover, [data-theme="light"] .drop-zone.drag { background: #ffeddd; border-color: #d6a278; }
+[data-theme="light"] .preview img { background: #f6ede5; border-color: #e1cbc1; }
+[data-theme="light"] .file-meta { color: #9e7b8c; }
+[data-theme="light"] .result-card { border-color: #c8d2b0; }
+[data-theme="light"] .result-icon { color: #899d62; background: #eef1df; }
+[data-theme="light"] .empty-state > svg { color: #b697c4; background: #f2e7f4; border-color: #e0cce6; }
+[data-theme="light"] .winter-mascot { filter: drop-shadow(0 4px 14px #c7a1c41f); }
+[data-theme="light"] .empty-state strong { color: #98798f; }
+[data-theme="light"] .empty-state p { color: #b095a5; }
+[data-theme="light"] .empty, [data-theme="light"] .loading-state { color: #a28094; }
+[data-theme="light"] .toast { color: #76894d; background: #f1f3e4; border-color: #c9d3ac; box-shadow: 0 8px 25px #9267771f; }
+[data-theme="light"] .toast.error { color: #aa657d; background: #fff0f2; border-color: #e8c1cf; }
+
+/* The sign-in road becomes an autumn Halloween village. */
+[data-theme="light"] .login-wrap { background: #fcebd5; }
+[data-theme="light"] .login-scene { background: linear-gradient(180deg, #fff3d8, #f4d2bb 60%, #d5b8d2); }
+[data-theme="light"] .login-scene::after { background: linear-gradient(90deg, transparent 32%, #fff2e11a 58%, #fff2e170 100%); }
+[data-theme="light"] .sky-stars { opacity: .13; }
+[data-theme="light"] .pixel-cloud { background: #fffaed; box-shadow: 24px -12px 0 -2px #fffaed, 58px -22px 0 -4px #fffaed, 92px -10px 0 -2px #fffaed; opacity: .6; }
+[data-theme="light"] .pixel-landscape { background-image: url('/static/assets/halloween-scene.svg'); }
+[data-theme="light"] .car-road { background: #ad8fa1; border-top-color: #ffebcf; }
+[data-theme="light"] .car-road::after { background: linear-gradient(180deg, #f7dabb22, transparent 50%, #785f8626); }
+[data-theme="light"] .car-shadow { background: #76596f; opacity: .3; }
+[data-theme="light"] .pixel-verge { background: repeating-linear-gradient(90deg, #e5bc92 0 12px, #fff0d6 12px 24px); border-top-color: #ffedc9; }
+[data-theme="light"] .pixel-foreground { background: repeating-linear-gradient(90deg, #d4a99d 0 96px, #f6ddc5 96px 160px); border-top-color: #fff2d9; }
+[data-theme="light"] .road-markings { background: repeating-linear-gradient(90deg, #f7dfca 0 70px, transparent 70px 160px); }
+[data-theme="light"] .login-card { color: #64425e; background: #fffbf2ed; border-color: #e8ccbf; box-shadow: inset 0 1px #fff, 0 22px 70px #a27c8c2e; }
+[data-theme="light"] .login-card h1 { color: #66405a; }
+[data-theme="light"] .field-icon { color: #b195a8; }
+[data-theme="light"] .field input { color: #694c64; background: #fffaf3; border-color: #dcc5c0; }
+[data-theme="light"] .field input::placeholder { color: #a18294; }
+[data-theme="light"] .field input:focus { border-color: #d7a27d; box-shadow: 0 0 0 3px #ecc19726; }
+[data-theme="light"] .login-form .btn { color: #694137; background: linear-gradient(105deg, #ffc98d, #ecc5b2); box-shadow: 0 6px 24px #dbab8326; }
+[data-theme="light"] .login-form .btn:hover { background: linear-gradient(105deg, #ffbb76, #e5b1a1); }
+[data-theme="light"] .login-error { color: #a15e79; background: #fbedf1; border-color: #e7bccf; }
+[data-theme="light"] .login-theme-control { border-color: #dbc2c4; background: #fff8edd9; box-shadow: 0 6px 22px #bd97961f; }
+[data-theme="light"] .login-theme-control button { color: #a08299; }
+[data-theme="light"] .login-theme-control button[aria-pressed="true"] { color: #855b45; background: linear-gradient(105deg, #ffe0aa, #efd2be); border-color: #e8b995; }
+[data-theme="light"] .snowfield i { background: #d29365; animation-name: autumnPixel; }
+[data-theme="light"] .snowfield i:nth-child(5n) { background: #b898c3; box-shadow: 3px 0 #b898c333, -3px 0 #b898c333, 0 3px #b898c333, 0 -3px #b898c333; }
+@keyframes autumnPixel { to { transform: translate(var(--drift), calc(100svh + 24px)) rotate(160deg); } }
+[data-theme="light"] .motion-paused .pixel-landscape { background-image: url('/static/assets/halloween-scene-still.svg'); }
+
+@media (max-width: 700px) {
+  .login-theme-control { top: 14px; right: 14px; padding: 4px; }.login-theme-control button { min-height: 32px; padding: 7px 11px; font-size: 11px; }
+  .theme-toggle { width: 32px; height: 32px; min-height: 32px; padding: 7px; }.topbar-right { gap: 6px; }
+  [data-theme="light"] .nav-item.active { box-shadow: inset 0 -3px #fff8dc; }
+}

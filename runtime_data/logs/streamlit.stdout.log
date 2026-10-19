@@ -1,0 +1,6 @@
+WARNING: Static file serving is enabled, but no static folder found at C:\Users\ADMIN\Downloads\-ITS--main\-ITS--main\frontend\static. To disable static file serving, set server.enableStaticServing to false.
+
+  You can now view your Streamlit app in your browser.
+
+  URL: http://127.0.0.1:8501
+

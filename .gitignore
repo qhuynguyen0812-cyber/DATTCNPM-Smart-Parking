@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.tmp
+
+# Local environment/runtime
+.env
+*.db
+*.sqlite
+*.sqlite3
+streamlit_app.log
+coverage/
+htmlcov/
+data/debug/
+
+# Local benchmark/generated outputs
+benchmark_results.json
+data/benchmark/results/
+data/benchmark/review/benchmark_candidates.csv
+data/samples/contact_sheet/*_rot*.jpg

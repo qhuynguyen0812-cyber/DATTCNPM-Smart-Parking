@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark light" />
+  <script>try { document.documentElement.dataset.theme = localStorage.getItem('its_theme') === 'light' ? 'light' : 'dark'; } catch (_) { document.documentElement.dataset.theme = 'dark'; }</script>
+  <title>ITS Parking — Nhận diện biển số xe máy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css?v=winter-pixel-4" />
+  <link rel="stylesheet" href="/static/winter.css?v=winter-pixel-6" />
+  <link rel="stylesheet" href="/static/halloween.css?v=pumpkin-eyes-11" />
+  <link rel="stylesheet" href="/static/password-lamp.css?v=lamp-1" />
+  <link rel="stylesheet" href="/static/winter-eggs.css?v=eggs-1" />
+  <link rel="stylesheet" href="/static/halloween-spider.css?v=spider-4" />
+  <link rel="stylesheet" href="/static/camera.css?v=camera-1" />
+  <link rel="stylesheet" href="/static/session.css?v=session-1" />
+</head>
+<body>
+  <!-- ============ LOGIN ============ -->
+  <div id="login-view" class="login-wrap">
+    <div class="login-theme-control" role="group" aria-label="Chọn giao diện">
+      <button type="button" data-theme-set="dark" aria-pressed="true"><span data-icon="moon" aria-hidden="true"></span>Tối</button>
+      <button type="button" data-theme-set="light" aria-pressed="false"><span data-icon="sun" aria-hidden="true"></span>Sáng</button>
+    </div>
+    <div class="login-scene" aria-hidden="true">
+      <div class="sky-stars"></div>
+      <div class="snowfield" aria-hidden="true"></div>
+      <div class="pixel-sun"></div>
+      <div class="pixel-cloud cloud-a"></div>
+      <div class="pixel-cloud cloud-b"></div>
+      <div class="pixel-cloud cloud-c"></div>
+    </div>
+    <div class="car-scene">
+      <div class="pixel-landscape"></div>
+      <div class="pixel-verge"></div>
+      <div class="car-road"></div>
+      <div class="road-markings"></div>
+      <div class="car-stage">
+        <div class="car-shadow"></div>
+        <div class="speed-lines"><i></i><i></i><i></i></div>
+        <div class="car-headlight"></div>
+        <img class="car" src="/static/assets/pixel-car.svg" data-winter-art="pixel-car" alt="" width="1280" height="560" />
+        <div class="turbo-snow" aria-hidden="true"></div>
+        <span class="turbo-caption" aria-hidden="true">TURBO!</span>
+        <button type="button" class="car-easter-hit" id="car-easter-hit" aria-label="Xe pixel" title="Xe pixel"></button>
+      </div>
+      <div class="pixel-foreground"></div>
+    </div>
+    <div class="pumpkin-corner" aria-hidden="true">
+      <svg viewBox="0 0 540 220" fill="none" shape-rendering="crispEdges">
+        <defs>
+          <g id="corner-pumpkin">
+            <path d="M43 14V3h8v6h-3v9" fill="#69805b"/><path d="M49 9h14v5H49Z" fill="#889459"/>
+            <path d="M17 84h66v7H17Z" fill="#8e637a" opacity=".22"/>
+            <path d="M24 19h49v6h13v9h7v36h-7v10H73v6H24v-6H12V70H5V34h7v-9h12Z" fill="#a85537"/>
+            <path d="M24 19h49v6h10v9h7v31h-7v10H73v6H24v-6H14V65H8V34h6v-9h10Z" fill="currentColor"/>
+            <path d="M25 25h6v46h-6ZM44 21h6v56h-6ZM68 27h6v43h-6Z" fill="#b96437" opacity=".35"/>
+            <path d="M17 32h7v-7h11v5H24v15h-7Z" fill="#ffe3a3" opacity=".45"/>
+            <path d="M22 39h6v-6h6v6h6v12H22ZM59 39h6v-6h6v6h6v12H59ZM43 53h6v-7h6v13H43Z" fill="#774354"/>
+            <path d="M23 61h12v6h12v-6h12v6h12v-6h7v12H65v5H35v-5H23Z" fill="#774354"/>
+            <path class="pumpkin-eyes" d="M25 40h6v-4h2v6h4v6H25ZM62 40h6v-4h2v6h4v6H62Z" fill="#fffbd0"/>
+            <g class="pumpkin-glimmer" fill="#ffe9a5">
+              <path d="M47 52h5v4h-5ZM27 65h5v4h-5ZM38 70h24v5H38ZM68 65h6v4h-6Z"/>
+            </g>
+          </g>
+        </defs>
+        <path d="M25 211h495v5H25Z" fill="#98687e" opacity=".16"/>
+        <use href="#corner-pumpkin" transform="translate(6 150) scale(.6)" color="#f8b879"/>
+        <use href="#corner-pumpkin" transform="translate(53 116) scale(.98)" color="#eca06c"/>
+        <use href="#corner-pumpkin" transform="translate(126 151) scale(.64)" color="#f5bb80"/>
+        <use href="#corner-pumpkin" transform="translate(168 93) scale(1.25)" color="#e88b58"/>
+        <use href="#corner-pumpkin" transform="translate(263 138) scale(.85)" color="#ffc689"/>
+        <use href="#corner-pumpkin" transform="translate(328 52) scale(1.76)" color="#ee9a61"/>
+        <use href="#corner-pumpkin" transform="translate(458 128) scale(.96)" color="#f4b37e"/>
+        <use href="#corner-pumpkin" transform="translate(386 162) scale(.57)" color="#ffcf98"/>
+        <g class="pumpkin-sparkles" fill="#b08abd">
+          <path d="M150 124h4v12h-4ZM146 128h12v4h-12ZM311 92h4v12h-4ZM307 96h12v4h-12ZM518 110h4v12h-4ZM514 114h12v4h-12Z"/>
+        </g>
+      </svg>
+    </div>
+    <div class="login-card">
+      <div class="login-brand">
+        <button type="button" class="login-logo winter-secret-logo" aria-label="Logo ITS Parking"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M9 25V7h9a6 6 0 0 1 0 12h-9m0-6h9" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></button>
+        <h1>ITS Parking</h1>
+      </div>
+      <form id="login-form" class="login-form">
+        <label class="field">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20v-2a7 7 0 0 1 14 0v2"/></svg>
+          <input id="login-username" type="text" aria-label="Tên đăng nhập" placeholder="Tên đăng nhập" autocomplete="username" required />
+        </label>
+        <div class="field password-field" id="password-field">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V6a4 4 0 0 1 8 0v4m-4 5v2"/></svg>
+          <input id="login-password" type="password" aria-label="Mật khẩu" placeholder="Mật khẩu" autocomplete="current-password" required />
+          <span class="password-light" aria-hidden="true"></span>
+          <button type="button" id="password-toggle" class="password-lamp" aria-label="Bật đèn, hiện mật khẩu" title="Bật đèn, hiện mật khẩu" aria-controls="login-password" aria-pressed="false">
+            <svg class="lamp-bulb" viewBox="0 0 32 40" fill="none" aria-hidden="true">
+              <path class="lamp-rays" d="M16 1v3M3 8l3 2m20 0 3-2M1 19h4m22 0h4M4 29l3-2m18 0 3 2" stroke="currentColor" stroke-width="2" stroke-linecap="square"/>
+              <path class="lamp-glass" d="M10 8h12v3h3v12h-3v4H10v-4H7V11h3V8Z" fill="currentColor" fill-opacity=".12" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              <path class="lamp-filament" d="m12 17 4 4 4-4m-4 4v7" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              <path class="lamp-base" d="M11 28h10v7H11zM14 37h4" fill="currentColor" fill-opacity=".25" stroke="currentColor" stroke-width="2"/>
+            </svg>
+          </button>
+        </div>
+        <div id="login-error" class="login-error" role="alert" hidden></div>
+        <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ APP ============ -->
+  <div id="app-view" class="app" hidden>
+    <div class="snowfield app-snow" aria-hidden="true"></div>
+    <aside class="sidebar">
+      <div class="side-brand">
+        <button type="button" class="side-logo winter-secret-logo" aria-label="Logo ITS Parking"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M9 25V7h9a6 6 0 0 1 0 12h-9m0-6h9" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"/></svg></button>
+        <div class="side-titles">
+          <div class="side-title">ITS Parking</div>
+          <div class="side-sub">Quản lý bãi đỗ</div>
+        </div>
+      </div>
+      <nav class="side-nav" id="side-nav">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon" data-icon="dashboard" aria-hidden="true"></span><span>Tổng quan</span></button>
+        <button class="nav-item" data-view="entry"><span class="nav-icon" data-icon="entry" aria-hidden="true"></span><span>Xe vào</span></button>
+        <button class="nav-item" data-view="exit"><span class="nav-icon" data-icon="exit" aria-hidden="true"></span><span>Xe ra</span></button>
+        <button class="nav-item" data-view="review"><span class="nav-icon" data-icon="review" aria-hidden="true"></span><span>Cần kiểm tra</span><b class="nav-badge" id="review-badge" hidden>0</b></button>
+        <button class="nav-item" data-view="logs"><span class="nav-icon" data-icon="logs" aria-hidden="true"></span><span>Nhật ký</span></button>
+        <button class="nav-item" data-view="admin" id="nav-admin" hidden><span class="nav-icon" data-icon="users" aria-hidden="true"></span><span>Tài khoản</span></button>
+      </nav>
+      <div class="sidebar-winter" aria-hidden="true"><img src="/static/assets/winter-scene.svg" data-winter-art="winter-scene" alt="" width="3840" height="2160" /><span class="winter-caption">PIXEL / WINTER</span></div>
+      <div class="side-user">
+        <div class="user-identity"><div class="user-avatar" id="user-avatar" aria-hidden="true">A</div><div><div class="side-user-name" id="side-username">—</div><div class="side-user-role" id="side-role">—</div></div></div>
+        <button class="btn btn-ghost btn-block" id="logout-btn"><span data-icon="logout" aria-hidden="true"></span>Đăng xuất</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><div class="topbar-eyebrow">ITS / Bãi đỗ</div><h2 id="view-title">Tổng quan</h2></div>
+        <div class="topbar-project">ĐỒ ÁN CNPM</div>
+        <div class="topbar-right">
+          <button type="button" class="btn theme-toggle" id="theme-toggle" aria-label="Chuyển sang giao diện sáng Halloween" title="Chuyển sang giao diện sáng Halloween"><span data-icon="sun" aria-hidden="true"></span></button>
+          <button class="btn winter-toggle" id="motion-toggle" aria-label="Giảm chuyển động" aria-pressed="false" title="Giảm chuyển động"><span data-icon="snow" aria-hidden="true"></span></button>
+          <button class="btn btn-refresh" id="refresh-btn" aria-label="Làm mới dữ liệu"><span data-icon="refresh" aria-hidden="true"></span></button>
+          <span id="clock" class="clock">--:--:--</span>
+        </div>
+      </header>
+      <div id="view-content" class="content" aria-live="polite"></div>
+    </main>
+  </div>
+
+  <dialog id="session-dialog" class="session-dialog" aria-labelledby="session-title">
+    <form id="session-form">
+      <h2 id="session-title">Đăng nhập lại</h2>
+      <p>Phiên đăng nhập đã hết hạn. Ảnh và thông tin đang nhập vẫn được giữ.</p>
+      <label>Tài khoản<input id="session-username" autocomplete="username" readonly /></label>
+      <label>Mật khẩu<input id="session-password" type="password" autocomplete="current-password" required /></label>
+      <div id="session-error" class="login-error" role="alert" hidden></div>
+      <button type="submit" class="btn btn-primary btn-block" id="session-submit">Đăng nhập để tiếp tục</button>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" hidden></div>
+  <div id="winter-aurora" class="winter-aurora" aria-hidden="true" hidden></div>
+  <div id="winter-secret" class="winter-secret" role="status" hidden>
+    <img src="/static/assets/winter-snowman.svg" data-winter-art="winter-snowman" alt="" width="384" height="384" />
+    <span>Đã tìm thấy bạn tuyết!</span>
+  </div>
+  <span id="winter-egg-status" class="sr-only" role="status"></span>
+  <button type="button" id="halloween-spider" class="halloween-spider" aria-label="Nhện Halloween, bấm để ôm màn hình" title="Chạm nhện để được ôm" hidden></button>
+  <div id="spider-hug" class="spider-hug" aria-hidden="true" hidden>
+    <div class="spider-hug-stage">
+      <svg class="spider-hug-legs" viewBox="0 0 1000 700" preserveAspectRatio="none" fill="none">
+        <g stroke="#624563" stroke-width="18" stroke-linecap="square" stroke-linejoin="round">
+          <path d="M455 305 340 235 145 100 24 30M450 335 285 280 125 230 18 165M450 365 300 405 125 440 18 525M460 390 365 470 180 575 25 675"/>
+          <path d="M545 305 660 235 855 100 976 30M550 335 715 280 875 230 982 165M550 365 700 405 875 440 982 525M540 390 635 470 820 575 975 675"/>
+        </g>
+        <g stroke="#b390ae" stroke-width="5" stroke-linecap="square">
+          <path d="M340 232 145 97 24 27M285 277 125 227 18 162M300 402 125 437 18 522M365 467 180 572 25 672M660 232 855 97 976 27M715 277 875 227 982 162M700 402 875 437 982 522M635 467 820 572 975 672"/>
+        </g>
+        <g fill="#d6adc3">
+          <path d="M8 15h32v25H8ZM4 151h32v25H4ZM4 511h32v25H4ZM9 660h32v25H9ZM960 15h32v25h-32ZM964 151h32v25h-32ZM964 511h32v25h-32ZM959 660h32v25h-32Z"/>
+        </g>
+      </svg>
+      <div id="spider-hug-body" class="spider-hug-body"></div>
+      <span class="spider-hug-heart">♥</span>
+      <span class="spider-hug-caption">Một cái ôm Halloween!</span>
+    </div>
+  </div>
+  <span id="spider-status" class="sr-only" role="status"></span>
+
+  <script src="/static/camera.js?v=camera-2"></script>
+  <script src="/static/app.js?v=session-15"></script>
+  <script src="/static/halloween-spider.js?v=spider-4"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+streamlit
+pandas
+opencv-python
+numpy
+pillow
+easyocr
+fast-alpr[onnx]
+fastapi
+uvicorn
+pytest
+plotly
+qrcode[pil]

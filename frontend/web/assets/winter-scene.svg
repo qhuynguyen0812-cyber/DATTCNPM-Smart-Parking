@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="2160" viewBox="0 0 960 540" shape-rendering="crispEdges">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#10152f"/><stop offset=".6" stop-color="#203d67"/><stop offset="1" stop-color="#547a96"/></linearGradient>
+    <linearGradient id="aurora"><stop stop-color="#73eee0" stop-opacity="0"/><stop offset=".45" stop-color="#73eee0" stop-opacity=".3"/><stop offset=".7" stop-color="#a795ff" stop-opacity=".4"/><stop offset="1" stop-color="#a795ff" stop-opacity="0"/></linearGradient>
+    <pattern id="snow" width="144" height="120" patternUnits="userSpaceOnUse"><g fill="#e1f7ff"><rect x="12" y="20" width="3" height="3"/><rect x="74" y="82" width="4" height="4"/><rect x="122" y="40" width="2" height="2"/><rect x="36" y="104" width="2" height="2"/></g></pattern>
+    <g id="pine"><path d="M24 0H32V8H40V20H48V28H40V32H52V44H60V52H48V56H60V68H68V76H40V88H16V76H-12V68H-4V56H8V52H-4V44H4V32H16V28H8V20H16V8H24Z" fill="#204658"/><path d="M24 0H32V8H40V20H48V24H16V20H16V8H24ZM12 36H44V40H52V48H4V44H12ZM0 60H56V64H64V72H-8V68H0Z" fill="#c2e8f2"/><path d="M24 76H32V96H24Z" fill="#3b405d"/></g>
+    <g id="small-car"><path d="M0 24H12V12H24V4H64V12H76V24H100V32H108V48H0Z" fill="#83e6eb"/><path d="M24 12H40V24H16V20H24ZM48 12H60V16H68V24H48Z" fill="#223a63"/><path d="M24 4H64V8H24ZM0 44H108V48H0Z" fill="#edf9ff"/><path d="M88 28H104V36H88Z" fill="#ffefb4"/><path d="M0 32H8V40H0Z" fill="#fba9c7"/><g fill="#172139"><path d="M16 40H32V44H36V56H32V60H16V56H12V44H16Z"/><path d="M76 40H92V44H96V56H92V60H76V56H72V44H76Z"/></g><path d="M20 48H28V56H20ZM80 48H88V56H80Z" fill="#bacaf4"/></g>
+  </defs>
+  <style>
+    .aurora { animation: glow 8s ease-in-out infinite alternate; }
+    .flakes { animation: snow 8s linear infinite; }
+    .car { animation: drive 18s linear infinite; }
+    .lamp { animation: lamp 3s steps(2) infinite alternate; }
+    @keyframes glow { to { opacity: .5; transform: translateX(36px); } }
+    @keyframes snow { to { transform: translate(-24px,120px); } }
+    @keyframes drive { from { transform: translateX(-180px); } to { transform: translateX(1080px); } }
+    @keyframes lamp { to { opacity: .65; } }
+    @media (prefers-reduced-motion:reduce) { * { animation:none!important; } }
+  </style>
+  <path d="M0 0H960V540H0Z" fill="url(#sky)"/>
+  <path class="aurora" d="M0 44H160V60H260V84H380V104H500V88H640V60H800V44H960V140H800V156H640V180H500V188H380V164H260V136H160V116H0Z" fill="url(#aurora)"/>
+  <g fill="#badff3" opacity=".8"><path d="M86 60H90V64H86ZM206 40H210V44H206ZM338 78H342V82H338ZM626 36H630V40H626ZM852 84H856V88H852Z"/></g>
+  <path d="M742 90H778V98H786V106H794V142H786V150H778V158H742V150H734V142H726V106H734V98H742Z" fill="#d5edf9"/><path d="M774 98H782V106H790V138H782V146H774V150H754V142H766V130H774Z" fill="#94c3df"/>
+  <path d="M0 342H36V312H72V288H108V260H144V232H180V196H212V220H244V252H276V284H312V316H352V340H392V370H0ZM342 364H380V332H416V296H452V260H488V228H516V204H544V172H572V200H600V228H632V264H672V300H708V340H748V370H342ZM700 360H740V324H772V292H804V260H836V236H864V264H896V292H928V326H960V380H700Z" fill="#496088"/>
+  <path d="M108 260H144V232H180V196H212V220H244V252H276V284H244V272H212V248H192V232H176V252H148V268H108ZM452 260H488V228H516V204H544V172H572V200H600V228H632V264H604V252H580V236H556V212H536V232H512V252H484V268H452ZM772 292H804V260H836V236H864V264H896V292H872V280H848V264H828V280H808V296H772Z" fill="#c3dff0"/>
+  <path d="M0 412H36V384H76V356H116V336H156V316H188V336H228V356H268V388H312V410H360V430H0ZM320 420H360V396H400V368H440V348H480V328H520V348H560V376H600V400H640V432H320ZM612 430H660V398H708V376H756V348H796V328H836V352H884V380H924V410H960V448H612Z" fill="#314c70"/>
+  <path d="M0 430H80V424H160V436H240V430H320V444H400V436H480V448H560V436H640V424H720V436H800V424H880V432H960V540H0Z" fill="#accfdf"/>
+  <g><use href="#pine" x="44" y="342"/><use href="#pine" x="124" y="368"/><use href="#pine" x="784" y="340"/><use href="#pine" x="874" y="362"/></g>
+  <g transform="translate(416 310)">
+    <path d="M-32 64H-16V48H0V32H16V16H112V32H128V48H144V64H160V80H-32Z" fill="#f0f6ff"/>
+    <path d="M-24 72H152V84H-24Z" fill="#7e8ec0"/>
+    <path d="M0 84H128V144H0Z" fill="#645d85"/><path d="M8 92H120V144H8Z" fill="#74678e"/>
+    <path d="M44 104H76V144H44Z" fill="#323c62"/>
+    <path class="lamp" d="M12 100H36V124H12ZM84 100H112V124H84Z" fill="#fbdba8"/>
+    <path d="M20 100V124M96 100V124M12 112H36M84 112H112" stroke="#a88893" stroke-width="4"/>
+    <path d="M92 8V-12H108V20H96Z" fill="#afa1bc"/><path d="M88 -16H112V-8H88Z" fill="#ecf5ff"/>
+  </g>
+  <path d="M0 468H960V524H0Z" fill="#385576"/><path d="M0 468H960V472H0ZM0 522H960V528H0Z" fill="#e5f5fb"/>
+  <path d="M0 498H72M120 498H192M240 498H312M360 498H432M480 498H552M600 498H672M720 498H792M840 498H912" stroke="#91b6cf" stroke-width="4"/>
+  <g class="car"><use href="#small-car" x="0" y="434"/></g>
+  <g class="flakes" opacity=".75"><path d="M-144 -120H1104V540H-144Z" fill="url(#snow)"/></g>
+</svg>

@@ -1,0 +1,13 @@
+.session-dialog { width: min(410px,calc(100% - 32px)); max-height: calc(100svh - 40px); padding: 28px; border: 1px solid #5a7897; border-radius: 20px; color: #e3f1ff; background: #14263f; box-shadow: 0 24px 80px #04112280; }
+.session-dialog::backdrop { background: #09142b99; backdrop-filter: blur(4px); }
+.session-dialog h2 { margin: 0 0 12px; font-size: 24px; letter-spacing: -.04em; }
+.session-dialog p { font-size: 13px; line-height: 1.8; color: #a7bdd5; margin: 0 0 20px; }
+.session-dialog label { display: grid; gap: 8px; font-size: 12px; color: #bcd0e5; margin-bottom: 16px; }
+.session-dialog input { width: 100%; min-height: 46px; padding: 10px 13px; border: 1px solid #536c88; border-radius: 10px; background: #0e1d33; color: #e8f4ff; font: 14px var(--font); }
+.session-dialog input[readonly] { opacity: .7; }
+.session-dialog input:focus-visible { outline: 2px solid #a5ddea; outline-offset: 2px; }
+.session-dialog .login-error { margin-bottom: 14px; }
+.session-dialog .btn { min-height: 46px; }
+[data-theme="light"] .session-dialog { color: #62485e; background: #fff8ed; border-color: #dbc0b9; }
+[data-theme="light"] .session-dialog p, [data-theme="light"] .session-dialog label { color: #937185; }
+[data-theme="light"] .session-dialog input { color: #68495f; background: #fffcf6; border-color: #dfc8bd; }

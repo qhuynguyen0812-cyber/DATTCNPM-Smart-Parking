@@ -1,0 +1,74 @@
+# BICAP PROJECT RULES - ENTERPRISE MODE
+
+## 1. ARCHITECTURE
+
+* Follow Domain-Driven Design (DDD)
+* Layered Architecture:
+
+  * Controller: HTTP + validation + RBAC ONLY
+  * Service: business logic
+  * Repository: DB access
+  * DTO: request/response only
+
+## 2. CODE RULES
+
+* No business logic in Controller
+* No Entity exposure to API
+* Use DTO for all responses
+* Methods < 40 lines
+* Use meaningful names (no abbreviations)
+
+## 3. RESPONSE FORMAT
+
+* Always use ApiResponse<T>:
+  {
+  "success": true,
+  "message": "string",
+  "data": {}
+  }
+
+## 4. SECURITY
+
+* Use JWT authentication
+* Use @PreAuthorize for RBAC
+* Validate resource ownership
+
+## 5. DATABASE
+
+* PostgreSQL
+* snake_case naming
+* Use JPA + @Query for complex queries
+
+## 6. BLOCKCHAIN
+
+* Only store hash / critical data on-chain
+* Use BlockchainService
+* Always async when calling blockchain
+
+## 7. TRANSACTION RULE
+
+* Save DB first
+* Call blockchain after
+* Do NOT rollback DB if blockchain fails
+
+## 8. LOGGING
+
+* Log all important actions
+* Log errors with context
+
+## 9. API VERSIONING
+
+* All APIs must start with /api/v1/
+
+## 10. PROJECT CONTEXT
+
+Project: BICAP
+Domain: Agriculture Supply Chain + Blockchain Traceability
+Roles: ADMIN, FARM_MANAGER, RETAILER, SHIPPING_MANAGER, SHIP_DRIVER, GUEST
+
+## 11. WHEN GENERATING CODE
+
+* Always provide FULL code (no placeholders)
+* Include file path
+* Follow package structure:
+  com.bicap.modules.{domain}

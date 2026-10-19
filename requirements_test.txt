@@ -1,0 +1,15 @@
+# Versions exercised on Windows / Python 3.12, 2026-09-06.
+# For actual OCR also install requirements_web.txt.
+pytest==9.1.1
+fastapi==0.141.1
+starlette==1.6.0
+httpx2==2.12.0
+python-multipart==0.0.32
+pandas==3.0.1
+numpy==2.3.5
+opencv-python==5.0.0.93
+pillow==12.3.0
+fast-alpr==0.4.0
+onnxruntime==1.29.0
+uvicorn==0.52.4
+openai==3.8.0

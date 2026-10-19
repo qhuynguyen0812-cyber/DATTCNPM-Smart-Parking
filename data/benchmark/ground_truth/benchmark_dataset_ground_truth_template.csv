@@ -1,0 +1,61 @@
+﻿file,expected_plate,ocr_suggestion,label,notes
+alpr_20260402150425_369e5f.jpg,,653815,todo,fill ground truth
+alpr_20260402150449_89c2bc.jpg,,D0A99999,todo,fill ground truth
+alpr_20260402150502_2967fa.jpg,,30-K8 8818,todo,fill ground truth
+alpr_20260402150516_121f0b.jpg,,54-LT 9999,todo,fill ground truth
+alpr_20260402150619_ac5d93.jpg,,90-B2 752.30,todo,fill ground truth
+alpr_20260402150706_eeae02.jpg,,35433233,todo,fill ground truth
+alpr_20260402152429_805699.jpg,,653815,todo,fill ground truth
+alpr_20260402152540_07eaff.jpg,,54-LT 9999,todo,fill ground truth
+alpr_20260402211523_ea0b9b.jpg,,653815,todo,fill ground truth
+alpr_20260402211627_8d6512.jpg,,30-K8 8818,todo,fill ground truth
+alpr_20260402211633_af6b03.jpg,,54-LT 9999,todo,fill ground truth
+alpr_20260402211810_b4ffcb.jpg,,90-B2 152.30,todo,fill ground truth
+alpr_20260402211812_be4e19.jpg,,T0A99999,todo,fill ground truth
+alpr_20260402211816_174f2c.jpg,,35433233,todo,fill ground truth
+alpr_20260402211818_48d164.jpg,,653815,todo,fill ground truth
+alpr_20260402212120_5bc3ed.jpg,,30-K8 8818,todo,fill ground truth
+alpr_20260402212121_484698.jpg,,54-LT 9999,todo,fill ground truth
+alpr_20260402212259_59040c.jpg,,90-B2 152.30,todo,fill ground truth
+alpr_20260402212301_ac6cf3.jpg,,T0A99999,todo,fill ground truth
+alpr_20260402212305_100144.jpg,,35433233,todo,fill ground truth
+alpr_20260402212307_aef061.jpg,,653815,todo,fill ground truth
+alpr_20260402212554_92cf16.jpg,,30-K8 8818,todo,fill ground truth
+alpr_20260402213147_12d3e3.jpg,,54-LT 9999,todo,fill ground truth
+alpr_20260402214847_5aaca8.jpg,,30-K8 8818,todo,fill ground truth
+alpr_20260402215127_4de568.jpg,,54-LT 9999,todo,fill ground truth
+alpr_20260402215456_63a70b.jpg,,54-L1 999.90,todo,fill ground truth
+alpr_20260402220146_56a1d0.jpg,,54-L1 999.90,todo,fill ground truth
+alpr_20260402221057_a181c9.jpg,,54-LT 9999,todo,fill ground truth
+alpr_20260402221212_1cdd1b.jpg,,T0A99999,todo,fill ground truth
+alpr_20260402223528_6d6917.jpg,,65-L1 007.80,todo,fill ground truth
+alpr_20260402224114_447f7b.jpg,,83-FD 997.20,todo,fill ground truth
+alpr_20260402224917_ce98c0.jpg,,95-T1 616.02,todo,fill ground truth
+alpr_20260402225032_434c7a.jpg,,65-H6 9154,todo,fill ground truth
+alpr_20260402225233_02b967.jpg,,65-L1 007.80,todo,fill ground truth
+alpr_20260402225454_f79713.jpg,,61-F1 065.10,todo,fill ground truth
+alpr_20260402225648_571c61.jpg,,83-FD 997.20,todo,fill ground truth
+alpr_20260402225758_53fdf7.jpg,,52-Z4 056.90,todo,fill ground truth
+alpr_20260402225847_ddfc4a.jpg,,95-T1 616.02,todo,fill ground truth
+alpr_20260402225931_7800bf.jpg,,65-D1,todo,fill ground truth
+alpr_20260402230014_8cc6a1.jpg,,65-H6 9154,todo,fill ground truth
+alpr_20260402230027_29c3b6.jpg,,83-P1 792.68,todo,fill ground truth
+alpr_20260402230042_47e3b6.jpg,,90-B2 852.30,todo,fill ground truth
+alpr_20260402230047_9a8688.jpg,,90-B2 852.30,todo,fill ground truth
+alpr_20260402230126_6d7bcd.jpg,,61-F1 065.10,todo,fill ground truth
+alpr_20260402230129_552872.jpg,,90-B2 852.30,todo,fill ground truth
+alpr_20260402230149_dac5af.jpg,,2,todo,fill ground truth
+alpr_20260402230218_36aa35.jpg,,52-Z4 056.90,todo,fill ground truth
+alpr_20260402230220_0f105b.jpg,,65-V2 020.60,todo,fill ground truth
+alpr_20260402230252_4c7074.jpg,,65-D1,todo,fill ground truth
+alpr_20260402230253_142d66.jpg,,67-V1 6283,todo,fill ground truth
+alpr_20260402230316_caee4f.jpg,,65-X1 618.09,todo,fill ground truth
+alpr_20260402230321_a2c72c.jpg,,83-P1 792.68,todo,fill ground truth
+alpr_20260402231114_522c2a.jpg,,65-L1 007.80,todo,fill ground truth
+alpr_20260402231223_5c0e22.jpg,,83-FD 997.20,todo,fill ground truth
+alpr_20260402231357_8f9f23.jpg,,95-T1 616.02,todo,fill ground truth
+alpr_20260402231451_acc618.jpg,,65-H6 9154,todo,fill ground truth
+alpr_20260402231600_91025a.jpg,,61-F1 065.10,todo,fill ground truth
+alpr_20260402231602_3ba90f.jpg,,65-T1 007.80,todo,fill ground truth
+alpr_20260402231603_2b290a.jpg,,83-FD 997.20,todo,fill ground truth
+alpr_20260402231605_3f3e10.jpg,,95-T1 616.07,todo,fill ground truth

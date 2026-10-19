@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="384" height="384" viewBox="0 0 96 96" shape-rendering="crispEdges">
+  <style>.ghost{animation:float 3s steps(15) infinite alternate}.spark{animation:glow 2s steps(3) infinite alternate}@keyframes float{to{transform:translateY(-5px)}}@keyframes glow{to{opacity:.3}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}</style>
+  <path d="M18 88H76V92H18Z" fill="#d8b3b4" opacity=".45"/>
+  <g class="ghost"><path d="M30 14H58V20H68V28H74V66H68V80H58V72H48V80H38V72H28V80H18V66H12V36H18V26H24V20H30Z" fill="#cdbce2"/><path d="M30 18H56V24H64V32H68V64H62V74H56V68H46V74H38V68H26V74H22V64H18V36H24V28H30Z" fill="#fff8eb"/><path d="M30 34H36V46H30ZM48 34H54V46H48Z" fill="#7a648e"/><path d="M38 50H46V54H38Z" fill="#e4bfce"/><path d="M22 44H28V48H22ZM56 44H62V48H56Z" fill="#f2cbba"/></g>
+  <path d="M64 62H72V68H64Z" fill="#7b8960"/><path d="M56 68H80V74H86V88H80V92H56V88H50V74H56Z" fill="#ee9b66"/><path d="M66 68H70V92H66Z" fill="#d88153"/><path d="M58 76H62V80H58ZM74 76H78V80H74ZM58 84H78V88H58Z" fill="#775768"/>
+  <g class="spark" fill="#bd8bc8"><path d="M10 12H14V24H10ZM6 16H18V20H6ZM78 30H82V42H78ZM74 34H86V38H74Z"/></g>
+</svg>

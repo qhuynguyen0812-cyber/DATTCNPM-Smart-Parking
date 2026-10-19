@@ -1,0 +1,3 @@
+image_path,expected_plate,condition,camera_id,captured_at,predicted_plate,confidence,latency_ms,notes
+samples/field_001.jpg,66-B1 123.45,daylight,camera-entrance-1,2026-04-27T08:00:00,,,,
+samples/field_002.jpg,59-C2 999.99,night,camera-exit-1,2026-04-27T20:00:00,,,,
