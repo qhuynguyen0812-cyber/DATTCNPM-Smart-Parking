@@ -9,13 +9,13 @@
 
 ---
 
-### DANH SÁCH THÀNH VIÊN NHÓM
-| STT | Họ và tên | MSSV | Vai trò trong nhóm | Trách nhiệm chính |
+### DANH SÁCH THÀNH VIÊN VÀ PHÂN CÔNG CHUYÊN TRÁCH
+| STT | Họ và tên | MSSV | Vai trò & Trọng tâm đảm nhiệm | Khối lượng phụ trách chính |
 | :---: | :--- | :---: | :---: | :--- |
-| 1 | **Đặng Đình Khang** | `027206013096` | Nhóm trưởng (Project Lead / System Architect) | Quản lý dự án, đặc tả SRS, kiến trúc phân quyền RBAC & báo cáo ca trực |
-| 2 | **Nguyễn Quang Huy** | `034206012355` | Thành viên (Tech Lead / Core Backend) | Thiết kế CSDL quan hệ 3NF, API lõi vào/ra đa cổng, tích hợp VietQR |
-| 3 | **Nguyễn Xuân Hoàng** | `66206000135` | Thành viên (AI Vision & Analytics) | Pipeline ALPR camera sau, thuật toán đếm sức chứa 4 khu, xuất Excel |
-| 4 | **Thạch Thị Trâm** | `51306002444` | Thành viên (Frontend & QA Tester) | Giao diện Web trạm POS đa làn, modal VietQR 5k, Test Plan & Unit Test |
+| 1 | **Nguyễn Quang Huy** | `034206012355` | **Tech Lead / Core Backend Engine** | **Gánh toàn bộ phần khó nhất**: Backend Architecture, API Gateway đa cổng, Pipeline AI Vision ALPR nhận diện biển số, Cổng thanh toán VietQR động 5k/10k, Bảo mật PBKDF2/JWT/RBAC và Audit Logs. |
+| 2 | **Đặng Đình Khang** | `027206013096` | **Nhóm trưởng / Frontend & Algorithms** | Toàn bộ Giao diện Web Frontend (SPA) Trạm POS bảo vệ đa cổng, Thuật toán Điều phối Làn xe linh hoạt (Reversible Lane), Thuật toán Tính toán Sức chứa thời gian thực 4 Khu (A, B, C, E), và Tích hợp UI với API. |
+| 3 | **Nguyễn Xuân Hoàng** | `66206000135` | **Nghiệp vụ, Kiểm thử & Báo cáo Excel** | Module Quản lý Ca trực (Shift Management) & Đối soát tiền vé theo từng cổng, Module Xử lý Sự cố mất thẻ xe (Lost Card Workflow), Viết bộ Kiểm thử tự động (Pytest), và Script xuất báo cáo Excel (.xlsx). |
+| 4 | **Thạch Thị Trâm** | `51306002444` | **Báo cáo chính, CSDL & Thuyết trình** | **Chịu trách nhiệm Báo cáo chính**: Biên soạn tài liệu SRS sơ bộ và Báo cáo đồ án hoàn chỉnh chuẩn IEEE; Thiết kế Cơ sở dữ liệu (CSDL) & Vẽ sơ đồ ERD 3NF; Thiết kế Bộ Slide thuyết trình (Canva/PPT) chuyên nghiệp. |
 
 ---
 
@@ -75,35 +75,35 @@
 | Mã WBS | Hạng mục công việc (Task Description) | Người phụ trách chính | Người phối hợp | Sản phẩm bàn giao (Deliverable) |
 | :--- | :--- | :--- | :--- | :--- |
 | **WBS 1.0** | **Khảo sát & Phân tích yêu cầu (Sprint 1)** | | | |
-| 1.1 | Khảo sát thực địa UTH CS1 (4 khu, 3 cổng, 8 làn) & Viết SRS sơ bộ | **Đặng Đình Khang** | Quang Huy | File `docs/SRS_SO_BO_SMART_PARKING_UTH_SE.md` |
-| 1.2 | Lập Kế hoạch làm việc nhóm & Bảng phân công WBS chi tiết | **Đặng Đình Khang** | Cả nhóm | Biên bản & Bảng WBS Sprint 1 |
+| 1.1 | Viết tài liệu Đặc tả SRS sơ bộ chuẩn IEEE 830 bám sát bãi xe UTH CS1 | **Thạch Thị Trâm** | Quang Huy | File `docs/SRS_SO_BO_SMART_PARKING_UTH_SE.md` |
+| 1.2 | Xây dựng Bảng phân rã công việc WBS & Kế hoạch tiến độ 4 Sprint | **Đặng Đình Khang** | Cả nhóm | Biên bản & Bảng WBS Sprint 1 |
 | 1.3 | Khởi tạo Git Workspace, cấu hình `.gitignore`, phân quyền cộng tác | **Nguyễn Quang Huy** | Đình Khang | Git Repository chuẩn mực |
 | **WBS 2.0** | **Thiết kế phần mềm & Cơ sở dữ liệu (Sprint 2)** | | | |
 | 2.1 | Thiết kế Sơ đồ Use Case tổng thể & chi tiết các trạm Cổng 1, 2, 3 | **Đặng Đình Khang** | Xuân Hoàng | Diagram Use Case |
-| 2.2 | Thiết kế CSDL quan hệ 3NF (`gates`, `zones`, `cards`, `tickets`, `shifts`) | **Nguyễn Quang Huy** | Đình Khang | Sơ đồ ERD & Script Schema DB |
-| 2.3 | Thiết kế Sơ đồ tuần tự (Sequence Diagram) luồng vào Cổng 1 - ra Cổng 2/3 | **Nguyễn Quang Huy** | Xuân Hoàng | Sơ đồ Sequence |
-| 2.4 | Thiết kế Wireframe/UI Mockup cho Trạm POS đa làn & Dashboard 4 khu | **Thạch Thị Trâm** | Đình Khang | Bản thiết kế giao diện Figma |
+| 2.2 | Thiết kế Cơ sở dữ liệu (CSDL) & Vẽ sơ đồ ERD chuẩn 3NF | **Thạch Thị Trâm** | Quang Huy | Sơ đồ ERD & Script Schema DB |
+| 2.3 | Thiết kế Sơ đồ tuần tự (Sequence Diagram) luồng vào Cổng 1 - ra Cổng 2/3 | **Nguyễn Quang Huy** | Đình Khang | Sơ đồ Sequence |
+| 2.4 | Thiết kế Wireframe/UI Mockup cho Trạm POS đa làn & Dashboard 4 khu | **Đặng Đình Khang** | Thị Trâm | Bản thiết kế giao diện Figma |
 | **WBS 3.0** | **Hiện thực hóa phần mềm & Tích hợp (Sprint 3)** | | | |
 | 3.1 | Tái cấu trúc Backend Service theo mô hình phân tầng chuẩn mực | **Nguyễn Quang Huy** | Đình Khang | Module `backend/` |
-| 3.2 | Hiện thực hóa API Xe vào Cổng 1 & Xe ra Trạm B/C/AE (Kiểm tra khớp biển) | **Nguyễn Quang Huy** | Xuân Hoàng | `backend/parking_service.py` |
+| 3.2 | Hiện thực hóa Core API Xe vào Cổng 1 & Xe ra Trạm B/C/AE (Khớp biển) | **Nguyễn Quang Huy** | Đình Khang | `backend/parking_service.py` |
 | 3.3 | Phát triển module Tính phí đồng giá 5k & Phụ phí qua đêm 5k (Tổng 10k) | **Nguyễn Quang Huy** | Xuân Hoàng | Module tính tiền |
-| 3.4 | Tích hợp dịch vụ Sinh mã VietQR 5k/10k động chuẩn Napas 247 | **Nguyễn Quang Huy** | Thị Trâm | Module VietQR Payment |
-| 3.5 | Tối ưu Pipeline ALPR nhận diện biển số xe máy từ 1 Camera sau | **Nguyễn Xuân Hoàng** | Quang Huy | `backend/alpr_service.py` |
-| 3.6 | Xây dựng thuật toán Đếm sức chứa thời gian thực của 4 khu (A, B, C, E) | **Nguyễn Xuân Hoàng** | Quang Huy | Module Zone Capacity |
-| 3.7 | Xây dựng Giao diện POS Trạm kiểm soát bảo vệ: Chọn cổng/làn, quét thẻ | **Thạch Thị Trâm** | Xuân Hoàng | `frontend/web/app.js` & `index.html` |
-| 3.8 | Thiết kế Modal Popup hiển thị Mã VietQR 5k/10k tự động khi xe ra | **Thạch Thị Trâm** | Quang Huy | Giao diện thanh toán QR |
-| 3.9 | Xây dựng Dashboard Sơ đồ 4 khu hiển thị tỷ lệ lấp đầy bãi xe UTH | **Thạch Thị Trâm** | Đình Khang | Giao diện Dashboard Sức chứa |
-| 3.10 | Xây dựng module Quản lý Ca trực bảo vệ & Báo cáo đối soát theo cổng | **Đặng Đình Khang** | Quang Huy | API & Màn hình chốt ca |
-| 3.11 | Xây dựng quy trình Xử lý sự cố mất thẻ xe (truy vết ảnh camera sau) | **Đặng Đình Khang** | Quang Huy | Module xử lý mất thẻ |
+| 3.4 | Tích hợp dịch vụ Sinh mã VietQR 5k/10k động chuẩn Napas 247 | **Nguyễn Quang Huy** | Đình Khang | Module VietQR Payment |
+| 3.5 | Tối ưu Pipeline AI Vision ALPR nhận diện biển số xe máy từ Camera sau | **Nguyễn Quang Huy** | Xuân Hoàng | `backend/alpr_service.py` |
+| 3.6 | Xây dựng Thuật toán Điều phối Làn linh hoạt & Đếm sức chứa 4 khu | **Đặng Đình Khang** | Quang Huy | Thuật toán điều phối |
+| 3.7 | Xây dựng toàn bộ Giao diện POS Trạm bảo vệ: Chọn cổng/làn, quét thẻ | **Đặng Đình Khang** | Quang Huy | `frontend/web/app.js` & `index.html` |
+| 3.8 | Thiết kế Modal Popup hiển thị Mã VietQR 5k/10k tự động khi xe ra | **Đặng Đình Khang** | Quang Huy | Giao diện thanh toán QR |
+| 3.9 | Xây dựng Dashboard Sơ đồ 4 khu hiển thị tỷ lệ lấp đầy bãi xe UTH | **Đặng Đình Khang** | Thị Trâm | Giao diện Dashboard Sức chứa |
+| 3.10 | Xây dựng module Quản lý Ca trực bảo vệ & Báo cáo đối soát theo cổng | **Nguyễn Xuân Hoàng** | Quang Huy | API & Màn hình chốt ca |
+| 3.11 | Xây dựng quy trình Xử lý sự cố mất thẻ xe (truy vết ảnh camera sau) | **Nguyễn Xuân Hoàng** | Quang Huy | Module xử lý mất thẻ |
 | **WBS 4.0** | **Kiểm thử & Đảm bảo chất lượng (Sprint 4)** | | | |
-| 4.1 | Lập Kế hoạch kiểm thử (Test Plan) & Ma trận trường hợp kiểm thử | **Thạch Thị Trâm** | Đình Khang | File `docs/TEST_PLAN.md` |
-| 4.2 | Viết Unit Test và Integration Test tự động bằng `pytest` (>40 test cases) | **Nguyễn Quang Huy** | Thị Trâm | Thư mục `tests/` |
-| 4.3 | Đánh giá Benchmark độ chính xác ALPR trên tập dữ liệu xe máy UTH | **Nguyễn Xuân Hoàng** | Cả nhóm | Báo cáo Benchmark Accuracy |
-| 4.4 | Kiểm thử bảo mật (Phân quyền RBAC, Hash PBKDF2, Lockout brute-force) | **Đặng Đình Khang** | Quang Huy | Báo cáo Security Audit |
+| 4.1 | Lập Kế hoạch kiểm thử (Test Plan) & Ma trận trường hợp kiểm thử | **Thạch Thị Trâm** | Xuân Hoàng | File `docs/TEST_PLAN.md` |
+| 4.2 | Viết Unit Test và Integration Test tự động bằng `pytest` (>40 test cases) | **Nguyễn Xuân Hoàng** | Quang Huy | Thư mục `tests/` |
+| 4.3 | Đánh giá Benchmark độ chính xác ALPR trên tập dữ liệu xe máy UTH | **Nguyễn Xuân Hoàng** | Quang Huy | Báo cáo Benchmark Accuracy |
+| 4.4 | Kiểm thử bảo mật (Phân quyền RBAC, Hash PBKDF2, Lockout brute-force) | **Nguyễn Quang Huy** | Đình Khang | Báo cáo Security Audit |
 | **WBS 5.0** | **Đóng gói, Viết Báo cáo & Nghiệm thu** | | | |
-| 5.1 | Đóng gói hệ thống chạy 1-click (Script `start.bat` / Docker Compose) | **Nguyễn Quang Huy** | Xuân Hoàng | File đóng gói ứng dụng |
-| 5.2 | Tổng hợp Báo cáo đồ án hoàn chỉnh (Final Report chuẩn IEEE) | **Đặng Đình Khang** | Cả nhóm | Báo cáo đồ án cuối kỳ |
-| 5.3 | Chuẩn bị Slide thuyết trình bảo vệ quan điểm & Quay Video Demo | **Thạch Thị Trâm** | Cả nhóm | Slide thuyết trình & Video |
+| 5.1 | Đóng gói hệ thống chạy 1-click (Script `start.bat` / Docker Compose) | **Nguyễn Xuân Hoàng** | Quang Huy | File đóng gói ứng dụng |
+| 5.2 | Biên soạn toàn bộ Báo cáo đồ án hoàn chỉnh (Final Report chuẩn IEEE) | **Thạch Thị Trâm** | Cả nhóm | Báo cáo đồ án cuối kỳ |
+| 5.3 | Thiết kế Bộ Slide thuyết trình (Canva/PPT) chuyên nghiệp & Kịch bản | **Thạch Thị Trâm** | Cả nhóm | Slide thuyết trình & Video |
 
 ---
 
