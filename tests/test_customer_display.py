@@ -36,6 +36,13 @@ def test_customer_display_state_transitions():
     assert s3["state"] == "SUCCESS"
     assert s3["fee"] == 10000
 
+    # CB-GV-CNV miễn phí
+    trigger_success_display(plate_number="51F-888.88", amount=0, user_type="STAFF")
+    s4 = get_customer_display_state()
+    assert s4["state"] == "SUCCESS"
+    assert s4["fee"] == 0
+    assert s4["user_type"] == "STAFF"
+
 
 def test_api_customer_display_endpoints():
     client = TestClient(app)

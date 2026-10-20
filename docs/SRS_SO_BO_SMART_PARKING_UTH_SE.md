@@ -19,15 +19,17 @@ Tài liệu Đặc tả Yêu cầu Phần mềm (Software Requirements Specifica
 ### 1.2. Phạm vi sản phẩm (Product Scope)
 Hệ thống là giải pháp phần mềm quản trị bãi xe máy tập trung và đa điểm kiểm soát:
 - **Địa bàn**: Khuôn viên Cơ sở 1 UTH (Số 2 Võ Oanh, Phường 25 / Thạnh Mỹ Tây, Bình Thạnh).
-- **Phân khu quản lý**: 4 khu vực đỗ xe gồm Sân Khu A, Sân Khu B, Sân Khu C và Nhà lầu giữ xe nhiều tầng Khu E.
+- **Phân khu quản lý**: 4 khu vực đỗ xe theo thứ tự quy hoạch thực tế **A -> E -> C -> B** gồm: Sân Khu A, Nhà xe Khu E nhiều tầng (CB-GV-CNV & SV), Sân Khu C và Sân Khu B.
 - **Mạng lưới trạm kiểm soát**:
   - *Cổng 1 (Võ Oanh)*: Trạm vào 4 làn song song.
-  - *Cổng 2*: Trạm xả Khu B (4 làn) và Trạm xả Khu C (4 làn).
+  - *Cổng 2*: Trạm xả Khu C (1 trạm gồm 2 làn) và Trạm xả Khu B (4 làn).
   - *Cổng 3*: Trạm xả Khu A & E (2 làn).
 - **Công nghệ cốt lõi**:
   - Nhận diện biển số tự động (ALPR) qua **1 Camera sau** (chụp đuôi xe máy).
   - Định danh phương tiện bằng **Thẻ trắng chip RFID in logo UTH** (bảo mật tuyệt đối, mắt thường không đọc được số thẻ/biển số).
-  - Thu phí đồng giá **5.000 VNĐ / lượt** trong ngày; phụ phí qua đêm **5.000 VNĐ** (tổng 10.000 VNĐ).
+  - **Chính sách phí**:
+    - **Cán bộ - Giảng viên - CNV (CB-GV-CNV)**: **Hoàn toàn miễn phí** (0 VNĐ), barrier tự động mở ngay khi quẹt thẻ nhân sự hợp lệ.
+    - **Sinh viên / Khách vãng lai**: Thu phí đồng giá **5.000 VNĐ / lượt** trong ngày; phụ phí qua đêm **5.000 VNĐ** (tổng 10.000 VNĐ nếu qua 23h00).
   - Tích hợp thanh toán số **VietQR động** chuẩn Napas 247.
 
 ---
@@ -41,28 +43,28 @@ flowchart TD
         G1["CỔNG 1 (ĐƯỜNG VÕ OANH)<br>4 Làn Vào Quẹt Thẻ RFID & Camera Sau"]
     end
 
-    subgraph CampusZones["4 KHU VỰC ĐỖ PHƯƠNG TIỆN"]
+    subgraph CampusZones["4 KHU VỰC ĐỖ PHƯƠNG TIỆN (THỨ TỰ A - E - C - B)"]
         ZA["Khu A (Sân ngoài trời)"]
-        ZB["Khu B (Sân ngoài trời)"]
+        ZE["Khu E (Nhà xe nhiều tầng CB-GV-CNV & SV)"]
         ZC["Khu C (Sân ngoài trời)"]
-        ZE["Khu E (Nhà lầu nhiều tầng)"]
+        ZB["Khu B (Sân ngoài trời)"]
     end
 
     subgraph ExitStations["CÁC TRẠM THOÁT XE"]
-        TB["Trạm Ra Khu B (4 làn)"] --> Gate2["CỔNG 2 (Lối xả đường Võ Oanh)"]
-        TC["Trạm Ra Khu C (4 làn)"] --> Gate2
+        TC["Trạm Ra Khu C (2 làn)"] --> Gate2["CỔNG 2 (Lối xả đường Võ Oanh)"]
+        TB["Trạm Ra Khu B (4 làn)"] --> Gate2
         TAE["Trạm Ra Khu A & E (2 làn)"] --> Gate3["CỔNG 3 (Lối xả phụ)"]
     end
 
     EntranceGate --> CampusZones
-    ZB --> TB
-    ZC --> TC
     ZA --> TAE
     ZE --> TAE
+    ZC --> TC
+    ZB --> TB
 ```
 
 ### 2.2. Các tác nhân hệ thống (Actors)
-1. **Bảo vệ trực cổng (Operator)**: Quẹt thẻ cho xe vào tại Cổng 1; quẹt thẻ thu tiền 5k/10k và kiểm tra khớp biển tại Cổng 2, Cổng 3; mở ca và chốt ca trực.
+1. **Bảo vệ trực cổng (Operator)**: Quẹt thẻ cho xe vào tại Cổng 1; quẹt thẻ xác thực thẻ Cán bộ - Giảng viên (miễn phí 0đ, tự mở barrier) hoặc thu tiền 5k/10k cho sinh viên và kiểm tra khớp biển tại Cổng 2, Cổng 3; mở ca và chốt ca trực.
 2. **Trưởng ca / Quản trị viên (Supervisor / Admin)**: Xử lý sự cố mất thẻ xe, giải quyết các trường hợp lệch biển số (`MISMATCH`), xem nhật ký kiểm toán và báo cáo doanh thu toàn trường.
 3. **Sinh viên / Khách gửi xe (Customer)**: Nhận thẻ khi vào, trả thẻ khi ra, thanh toán tiền mặt hoặc quét mã VietQR 5k/10k.
 
@@ -73,24 +75,26 @@ flowchart TD
 ### Nhóm 1: Quản lý Xe vào (Check-in at Gate 1)
 - **FR 1.1**: Hệ thống đọc mã UID từ thẻ trắng RFID qua đầu đọc thẻ USB tại 1 trong 4 làn Cổng 1.
 - **FR 1.2**: Camera sau tự động chụp ảnh biển số xe máy, module AI ALPR nhận diện và trích xuất chuỗi ký tự biển số.
-- **FR 1.3**: Hệ thống gán khu vực đỗ (A, B, C, hoặc E) cho lượt gửi xe và tự động giảm 1 chỗ trống của khu vực tương ứng.
-- **FR 1.4**: Tạo bản ghi vé xe trạng thái `IN_PARKING` lưu trữ: Mã thẻ UID, biển số nhận diện, ảnh chụp sau, thời gian vào, mã cổng/làn, và ID bảo vệ trực.
+- **FR 1.3**: Hệ thống phân loại đối tượng gửi xe (Sinh viên vs Cán bộ - Giảng viên) và gán khu vực đỗ (A, E, C, hoặc B) cho lượt gửi xe, tự động giảm 1 chỗ trống của khu vực tương ứng.
+- **FR 1.4**: Tạo bản ghi vé xe trạng thái `IN_PARKING` lưu trữ: Mã thẻ UID, đối tượng (`user_type`), biển số nhận diện, ảnh chụp sau, thời gian vào, mã cổng/làn, và ID bảo vệ trực.
 
 ### Nhóm 2: Quản lý Xe ra & Đối chiếu (Check-out at Gate 2 & Gate 3)
-- **FR 2.1**: Tiếp nhận thẻ từ người gửi xe tại Trạm B, Trạm C (Cổng 2) hoặc Trạm A-E (Cổng 3).
+- **FR 2.1**: Tiếp nhận thẻ từ người gửi xe tại Trạm C (1 trạm gồm 2 làn), Trạm B (4 làn) (Cổng 2) hoặc Trạm A-E (Cổng 3).
 - **FR 2.2**: Camera sau tại làn ra chụp ảnh biển số xe máy đang chờ xuất bến.
 - **FR 2.3**: Hệ thống tự động so khớp biển số xe ra với biển số xe vào được gắn với mã thẻ UID:
-  - *Nếu Khớp (MATCH)*: Bật chỉ thị Xanh, hiển thị số tiền cần thu.
+  - *Nếu Khớp (MATCH)*:
+    - Nếu là Cán bộ - Giảng viên - CNV (`STAFF`): Phí 0 VNĐ, tự động nâng cần barrier mở lối đi ngay.
+    - Nếu là Sinh viên / Khách: Bật chỉ thị Xanh, hiển thị số tiền 5.000đ (hoặc 10.000đ qua đêm) và mã VietQR.
   - *Nếu Không Khớp (MISMATCH)*: Bật cảnh báo Đỏ, khóa cổng và yêu cầu bảo vệ xác minh thủ công.
 - **FR 2.4**: Tăng lại 1 chỗ trống cho khu vực đỗ tương ứng sau khi xe xuất bãi thành công.
 
 ### Nhóm 3: Thu phí & Thanh toán số (Tariff & Payment Engine)
-- **FR 3.1**: Mặc định áp dụng mức phí đồng giá **5.000 VNĐ / lượt** cho mọi lượt gửi xe trong ngày.
-- **FR 3.2**: Tự động phát hiện xe gửi qua đêm (qua mốc 23h00 đêm hoặc sang ngày tiếp theo) để cộng thêm phụ phí qua đêm **5.000 VNĐ** (Tổng thu: **10.000 VNĐ**).
+- **FR 3.1**: Cán bộ - Giảng viên - CNV (CB-GV-CNV) được miễn phí 100% (0 VNĐ). Mặc định áp dụng mức phí đồng giá **5.000 VNĐ / lượt** cho sinh viên / khách trong ngày.
+- **FR 3.2**: Tự động phát hiện xe sinh viên gửi qua đêm (qua mốc 23h00 đêm hoặc sang ngày tiếp theo) để cộng thêm phụ phí qua đêm **5.000 VNĐ** (Tổng thu: **10.000 VNĐ**).
 - **FR 3.3**: Cung cấp tùy chọn thanh toán tiền mặt (bấm xác nhận 1 chạm) hoặc sinh mã **VietQR động** chứa chính xác số tiền và mã vé để người gửi quét thanh toán tức thì.
 
 ### Nhóm 4: Quản lý Sức chứa 4 Khu (Zone Capacity Monitoring)
-- **FR 4.1**: Thiết lập định mức sức chứa tối đa cho từng khu vực: Sân A, Sân B, Sân C và Nhà lầu E.
+- **FR 4.1**: Thiết lập định mức sức chứa tối đa cho từng khu vực theo thứ tự A - E - C - B: Sân A, Nhà xe Khu E nhiều tầng, Sân C và Sân B.
 - **FR 4.2**: Tính toán số lượng xe đang đỗ và tỷ lệ phần trăm lấp đầy thời gian thực của từng khu.
 - **FR 4.3**: Hiển thị cảnh báo trực quan khi một khu vực đạt ngưỡng $\ge 90\%$ (sắp đầy) hoặc $100\%$ (hết chỗ).
 

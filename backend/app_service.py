@@ -63,6 +63,7 @@ def confirm_vehicle_entry(
     gate_entry: str | None = "GATE_1",
     lane_entry: str | None = "LANE_1",
     zone_assigned: str | None = None,
+    user_type: str = "STUDENT",
 ):
     validated_plate = validate_plate_text(plate_text)
     if ocr_review_required is None:
@@ -82,6 +83,7 @@ def confirm_vehicle_entry(
         gate_entry=gate_entry,
         lane_entry=lane_entry,
         zone_assigned=zone_assigned,
+        user_type=user_type,
     )
 
 
@@ -103,6 +105,7 @@ def confirm_vehicle_exit(
     lane_exit: str | None = None,
     payment_method: str = "CASH",
     payment_status: str = "PAID",
+    user_type: str | None = None,
 ):
     clean_ticket = (ticket_id or "").strip()
     clean_card = (card_id or "").strip()
@@ -129,4 +132,5 @@ def confirm_vehicle_exit(
         lane_exit=lane_exit,
         payment_method=payment_method,
         payment_status=payment_status,
+        user_type=user_type,
     )

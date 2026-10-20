@@ -541,6 +541,7 @@ def vehicle_entry(
     gate_entry: str | None = Form(default="GATE_1"),
     lane_entry: str | None = Form(default="LANE_1"),
     zone_assigned: str | None = Form(default=None),
+    user_type: str = Form(default="STUDENT"),
     ai_review_confirmed: bool = Form(default=False),
     user: AuthUser = Depends(require_roles(*WRITE_ROLES)),
 ):
@@ -564,6 +565,7 @@ def vehicle_entry(
         gate_entry=gate_entry,
         lane_entry=lane_entry,
         zone_assigned=zone_assigned,
+        user_type=user_type,
     )
     if not result.get("success"):
         return map_business_failure(result, resource="ticket")
@@ -581,6 +583,7 @@ def vehicle_exit(
     lane_exit: str | None = Form(default=None),
     payment_method: str = Form(default="CASH"),
     payment_status: str = Form(default="PAID"),
+    user_type: str | None = Form(default=None),
     ai_review_confirmed: bool = Form(default=False),
     user: AuthUser = Depends(require_roles(*WRITE_ROLES)),
 ):
@@ -606,12 +609,22 @@ def vehicle_exit(
         lane_exit=lane_exit,
         payment_method=payment_method,
         payment_status=payment_status,
+        user_type=user_type,
     )
     if not result.get("success"):
         return map_business_failure(result, resource="ticket")
 
-    # Trigger customer-facing secondary screen if paying with VietQR
-    if result.get("success") and payment_method and payment_method.upper() == "VIETQR":
+    # If staff (CB-GV-CNV), notify secondary display that vehicle is exempt and barrier opens
+    if result.get("success") and result.get("user_type") == "STAFF":
+        try:
+            trigger_success_display(
+                plate_number=result.get("plate_exit") or final_plate,
+                amount=0,
+                user_type="STAFF",
+            )
+        except Exception as exc:
+            logger.debug("Failed to trigger staff success display: %s", exc)
+    elif result.get("success") and payment_method and payment_method.upper() == "VIETQR":
         try:
             trigger_checkout_display(
                 plate_number=result.get("plate_exit") or final_plate,

@@ -138,8 +138,20 @@ def _review_reason(confidence: float | None, manual_override: bool, mismatch: bo
     return ";".join(reasons) or None
 
 
-def calculate_parking_fee(entry_time_str: str, exit_time_str: str | None = None) -> dict[str, Any]:
-    """Calculate base fee and overnight surcharge (past 23h cutoff or next-day checkout)."""
+def calculate_parking_fee(entry_time_str: str, exit_time_str: str | None = None, is_staff: bool = False) -> dict[str, Any]:
+    """Calculate base fee and overnight surcharge (past 23h cutoff or next-day checkout).
+
+    Cán bộ - Giảng viên - CNV (is_staff=True) are 100% exempt from parking fees (0 VNĐ).
+    """
+    if is_staff:
+        return {
+            "base_fee": 0,
+            "overnight_surcharge": 0,
+            "total_fee": 0,
+            "is_overnight": False,
+            "is_staff": True,
+        }
+
     base_fee = DEFAULT_PARKING_FEE
     overnight_surcharge = 0
     fmt = "%Y-%m-%d %H:%M:%S"
@@ -172,6 +184,7 @@ def calculate_parking_fee(entry_time_str: str, exit_time_str: str | None = None)
         "overnight_surcharge": overnight_surcharge,
         "total_fee": total_fee,
         "is_overnight": is_overnight,
+        "is_staff": False,
     }
 
 
@@ -190,6 +203,7 @@ def vehicle_entry(
     gate_entry: str | None = "GATE_1",
     lane_entry: str | None = "LANE_1",
     zone_assigned: str | None = None,
+    user_type: str = "STUDENT",
 ) -> dict[str, Any]:
     clean_plate = _sanitize_plate_text(plate_text)
     normalized_plate = _normalized_plate_text(clean_plate)
@@ -197,6 +211,12 @@ def vehicle_entry(
         return {"success": False, "message": "Invalid plate text", "plate_entry": clean_plate}
 
     clean_card_id = (card_id or "").strip() or None
+    clean_user_type = (user_type or "STUDENT").strip().upper()
+    is_staff = clean_user_type == "STAFF"
+    entry_fee = 0 if is_staff else DEFAULT_PARKING_FEE
+    entry_payment_status = "PAID" if is_staff else "UNPAID"
+    entry_payment_method = "FREE" if is_staff else None
+
     confidence = _safe_confidence(ocr_confidence)
     review_reason = _review_reason(confidence, manual_override, ocr_review_required=ocr_review_required)
     review_required = bool(review_reason)
@@ -263,6 +283,7 @@ def vehicle_entry(
             "payment_method": "TEXT",
             "payment_status": "TEXT",
             "paid_at": "TEXT",
+            "user_type": "TEXT NOT NULL DEFAULT 'STUDENT'",
         }
         for column_name, column_type in required_columns.items():
             if column_name not in existing_columns:
@@ -281,6 +302,9 @@ def vehicle_entry(
             1 if manual_override else 0, 0, 1 if review_required else 0, review_reason, _actor_name(actor),
         ]
 
+        if "user_type" in existing_columns:
+            insert_columns.append("user_type")
+            insert_values.append(clean_user_type)
         if "card_id" in existing_columns:
             insert_columns.append("card_id")
             insert_values.append(clean_card_id)
@@ -295,16 +319,16 @@ def vehicle_entry(
             insert_values.append(zone_assigned)
         if "fee" in existing_columns:
             insert_columns.append("fee")
-            insert_values.append(DEFAULT_PARKING_FEE)
+            insert_values.append(entry_fee)
         if "overnight_surcharge" in existing_columns:
             insert_columns.append("overnight_surcharge")
             insert_values.append(0)
         if "payment_status" in existing_columns:
             insert_columns.append("payment_status")
-            insert_values.append("UNPAID")
+            insert_values.append(entry_payment_status)
         if "payment_method" in existing_columns:
             insert_columns.append("payment_method")
-            insert_values.append(None)
+            insert_values.append(entry_payment_method)
 
         if "plate_number" in existing_columns and "plate_number" not in insert_columns:
             insert_columns.insert(1, "plate_number")
@@ -324,8 +348,8 @@ def vehicle_entry(
         except Exception as exc:
             logger.warning("Failed to increment occupancy for zone %s: %s", zone_assigned, exc)
 
-    _safe_event(ticket_id, "VEHICLE_ENTRY", actor_username=_actor_name(actor), actor_role=_actor_role(actor), plate_text=clean_plate, confidence=confidence, source=ocr_engine or "manual", details={"manual_override": manual_override, "review_reason": review_reason, "card_id": clean_card_id, "zone": zone_assigned})
-    _safe_audit(_actor_name(actor), _actor_role(actor), "vehicle.entry", target_type="ticket", target_id=ticket_id, details_json=_json_details(plate=clean_plate, card_id=clean_card_id, zone=zone_assigned, review_reason=review_reason))
+    _safe_event(ticket_id, "VEHICLE_ENTRY", actor_username=_actor_name(actor), actor_role=_actor_role(actor), plate_text=clean_plate, confidence=confidence, source=ocr_engine or "manual", details={"manual_override": manual_override, "review_reason": review_reason, "card_id": clean_card_id, "zone": zone_assigned, "user_type": clean_user_type})
+    _safe_audit(_actor_name(actor), _actor_role(actor), "vehicle.entry", target_type="ticket", target_id=ticket_id, details_json=_json_details(plate=clean_plate, card_id=clean_card_id, zone=zone_assigned, user_type=clean_user_type, review_reason=review_reason))
     return {
         "success": True,
         "ticket_id": ticket_id,
@@ -338,7 +362,8 @@ def vehicle_entry(
         "gate_entry": gate_entry,
         "lane_entry": lane_entry,
         "zone_assigned": zone_assigned,
-        "fee": DEFAULT_PARKING_FEE,
+        "user_type": clean_user_type,
+        "fee": entry_fee,
     }
 
 
@@ -359,6 +384,7 @@ def vehicle_exit(
     lane_exit: str | None = None,
     payment_method: str = "CASH",
     payment_status: str = "PAID",
+    user_type: str | None = None,
 ) -> dict[str, Any]:
     clean_ticket_id = (ticket_id or "").strip()
     clean_card_id = (card_id or "").strip()
@@ -380,16 +406,21 @@ def vehicle_exit(
     confidence = _safe_confidence(ocr_confidence)
     with _write_transaction() as conn:
         cursor = conn.cursor()
+        log_columns = {r[1] for r in cursor.execute("PRAGMA table_info(parking_logs)").fetchall()}
+        user_type_expr = "user_type" if "user_type" in log_columns else "'STUDENT'"
+
         cursor.execute(
-            "SELECT ticket_id, plate_entry, status, review_required, entry_time, zone_assigned, card_id FROM parking_logs WHERE ticket_id = ?",
+            f"SELECT ticket_id, plate_entry, status, review_required, entry_time, zone_assigned, card_id, {user_type_expr} FROM parking_logs WHERE ticket_id = ?",
             (clean_ticket_id,),
         )
         row = cursor.fetchone()
         if row is None:
             return {"success": False, "message": "Ticket ID not found"}
 
-        _, plate_entry, status, entry_review_required, entry_time, zone_assigned, stored_card_id = row
+        _, plate_entry, status, entry_review_required, entry_time, zone_assigned, stored_card_id, stored_user_type = row
         effective_card_id = clean_card_id or stored_card_id or ""
+        effective_user_type = (user_type or stored_user_type or "STUDENT").strip().upper()
+        is_staff = effective_user_type == "STAFF"
 
         if status == COMPLETED_STATUS:
             return {"success": False, "message": "Vehicle already checked out"}
@@ -405,29 +436,37 @@ def vehicle_exit(
         review_required = bool(review_reason)
         new_status = NEEDS_REVIEW_STATUS if review_required else COMPLETED_STATUS
 
-        # Calculate tariff and overnight surcharge
-        tariff = calculate_parking_fee(entry_time, exit_time)
+        # Calculate tariff and overnight surcharge (CB-GV-CNV is completely exempt)
+        tariff = calculate_parking_fee(entry_time, exit_time, is_staff=is_staff)
         final_fee = tariff["total_fee"]
         overnight_surcharge = tariff["overnight_surcharge"]
-        effective_paid_at = exit_time if (new_status == COMPLETED_STATUS and payment_status == "PAID") else None
+        effective_payment_method = "FREE" if is_staff else payment_method
+        effective_payment_status = "PAID" if is_staff else payment_status
+        effective_paid_at = exit_time if (new_status == COMPLETED_STATUS and effective_payment_status == "PAID") else None
+
+        update_user_type_sql = ", user_type = ?" if "user_type" in log_columns else ""
+        update_params = [
+            clean_plate, exit_time, new_status, match_result,
+            image_path, detected_path, plate_path, confidence, ocr_engine,
+            (ocr_text or "").strip() or None, 1 if manual_override else 0, 1 if review_required else 0, review_reason, _actor_name(actor),
+            gate_exit, lane_exit, final_fee, overnight_surcharge, effective_payment_method, effective_payment_status,
+            effective_paid_at,
+        ]
+        if "user_type" in log_columns:
+            update_params.append(effective_user_type)
+        update_params.extend([clean_ticket_id, ACTIVE_STATUS])
 
         cursor.execute(
-            """
+            f"""
             UPDATE parking_logs
             SET plate_exit = ?, exit_time = ?, status = ?, match_result = ?,
                 exit_image_path = ?, exit_detected_path = ?, exit_plate_path = ?, exit_ocr_confidence = ?, exit_ocr_engine = ?,
                 exit_ocr_text = ?, exit_manual_override = ?, review_required = ?, review_reason = ?, exit_actor = ?,
                 gate_exit = ?, lane_exit = ?, fee = ?, overnight_surcharge = ?, payment_method = ?, payment_status = ?,
-                paid_at = ?
+                paid_at = ?{update_user_type_sql}
             WHERE ticket_id = ? AND status = ?
             """,
-            (
-                clean_plate, exit_time, new_status, match_result,
-                image_path, detected_path, plate_path, confidence, ocr_engine,
-                (ocr_text or "").strip() or None, 1 if manual_override else 0, 1 if review_required else 0, review_reason, _actor_name(actor),
-                gate_exit, lane_exit, final_fee, overnight_surcharge, payment_method, payment_status,
-                effective_paid_at, clean_ticket_id, ACTIVE_STATUS,
-            ),
+            tuple(update_params),
         )
         if cursor.rowcount == 0:
             return {"success": False, "message": "Vehicle already checked out"}
@@ -439,16 +478,24 @@ def vehicle_exit(
         except Exception as exc:
             logger.warning("Failed to decrement occupancy for zone %s: %s", zone_assigned, exc)
 
+    # Barrier automatically lifts for staff (CB-GV-CNV) on exit
+    if new_status == COMPLETED_STATUS and is_staff:
+        try:
+            from integrations.barrier_service import barrier_simulator
+            barrier_simulator.open_barrier(lane_exit or "LANE_EXIT_1", reason="staff-free-exit")
+        except Exception as exc:
+            logger.warning("Failed to open barrier for staff exit: %s", exc)
+
     vietqr_payload = None
-    if payment_method and payment_method.upper() == "VIETQR":
+    if not is_staff and payment_method and payment_method.upper() == "VIETQR" and final_fee > 0:
         vietqr_payload = build_parking_vietqr(
             card_id=effective_card_id,
             amount=final_fee,
             ticket_id=clean_ticket_id,
         )
 
-    _safe_event(clean_ticket_id, "VEHICLE_EXIT", actor_username=_actor_name(actor), actor_role=_actor_role(actor), plate_text=clean_plate, confidence=confidence, source=ocr_engine or "manual", details={"manual_override": manual_override, "match_result": match_result, "review_reason": review_reason, "fee": final_fee, "payment_method": payment_method})
-    _safe_audit(_actor_name(actor), _actor_role(actor), "vehicle.exit", target_type="ticket", target_id=clean_ticket_id, details_json=_json_details(plate_entry=plate_entry, plate_exit=clean_plate, match_result=match_result, status=new_status, fee=final_fee))
+    _safe_event(clean_ticket_id, "VEHICLE_EXIT", actor_username=_actor_name(actor), actor_role=_actor_role(actor), plate_text=clean_plate, confidence=confidence, source=ocr_engine or "manual", details={"manual_override": manual_override, "match_result": match_result, "review_reason": review_reason, "fee": final_fee, "payment_method": effective_payment_method, "user_type": effective_user_type})
+    _safe_audit(_actor_name(actor), _actor_role(actor), "vehicle.exit", target_type="ticket", target_id=clean_ticket_id, details_json=_json_details(plate_entry=plate_entry, plate_exit=clean_plate, match_result=match_result, status=new_status, fee=final_fee, user_type=effective_user_type))
     return {
         "success": True,
         "ticket_id": clean_ticket_id,
@@ -462,8 +509,9 @@ def vehicle_exit(
         "review_reason": review_reason,
         "fee": final_fee,
         "overnight_surcharge": overnight_surcharge,
-        "payment_method": payment_method,
-        "payment_status": payment_status,
+        "payment_method": effective_payment_method,
+        "payment_status": effective_payment_status,
+        "user_type": effective_user_type,
         "gate_exit": gate_exit,
         "lane_exit": lane_exit,
         "zone_assigned": zone_assigned,

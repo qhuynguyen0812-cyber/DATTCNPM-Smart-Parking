@@ -29,6 +29,8 @@ def test_api_zones_status_endpoint(tmp_path, monkeypatch):
     assert data["ok"] is True
     assert "zones" in data
     assert len(data["zones"]) == 4
+    zone_ids = [z["zone_id"] for z in data["zones"]]
+    assert zone_ids == ["ZONE_A", "ZONE_E", "ZONE_C", "ZONE_B"]
     assert data["total_capacity"] == 250 + 450 + 450 + 600
     assert data["total_available"] == data["total_capacity"]
 

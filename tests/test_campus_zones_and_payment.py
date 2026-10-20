@@ -33,10 +33,8 @@ def test_campus_zones_initialization(tmp_path):
 
     zones = get_all_zones(test_db)
     zone_ids = [z["zone_id"] for z in zones]
-    assert "ZONE_A" in zone_ids
-    assert "ZONE_B" in zone_ids
-    assert "ZONE_C" in zone_ids
-    assert "ZONE_E" in zone_ids
+    # Strict ground-truth order: A -> E -> C -> B
+    assert zone_ids == ["ZONE_A", "ZONE_E", "ZONE_C", "ZONE_B"]
 
     status_a = get_zone_status("ZONE_A", test_db)
     assert status_a is not None
@@ -189,3 +187,50 @@ def test_recalculate_zone_occupancies(tmp_path, monkeypatch):
     status_c = get_zone_status("ZONE_C", test_db)
     assert status_a["current_occupied"] == 2
     assert status_c["current_occupied"] == 1
+
+
+def test_calculate_parking_fee_staff_exemption():
+    # CB-GV-CNV is completely exempt from fees, even overnight
+    entry_time = "2026-10-20 07:00:00"
+    exit_time = "2026-10-21 18:00:00"
+    tariff = calculate_parking_fee(entry_time, exit_time, is_staff=True)
+    assert tariff["base_fee"] == 0
+    assert tariff["overnight_surcharge"] == 0
+    assert tariff["total_fee"] == 0
+    assert tariff["is_staff"] is True
+
+
+def test_vehicle_entry_exit_staff_free_parking(tmp_path, monkeypatch):
+    test_db = tmp_path / "test_staff_parking.db"
+    apply_migrations(test_db)
+    monkeypatch.setattr("backend.parking_service.DB_PATH", test_db)
+    monkeypatch.setattr("backend.db.DB_PATH", test_db)
+
+    # 1. Staff Entry with card ID and user_type=STAFF
+    entry_res = vehicle_entry(
+        plate_text="51F-888.88",
+        card_id="STAFF_CARD_001",
+        gate_entry="GATE_1",
+        lane_entry="LANE_1",
+        zone_assigned="ZONE_E",
+        user_type="STAFF",
+    )
+    assert entry_res["success"] is True
+    assert entry_res["fee"] == 0
+    assert entry_res["user_type"] == "STAFF"
+
+    # 2. Staff Exit with card ID -> fee=0, payment_method=FREE, payment_status=PAID
+    exit_res = vehicle_exit(
+        card_id="STAFF_CARD_001",
+        plate_text="51F-888.88",
+        gate_exit="GATE_2",
+        lane_exit="LANE_EXIT_1",
+    )
+    assert exit_res["success"] is True
+    assert exit_res["fee"] == 0
+    assert exit_res["overnight_surcharge"] == 0
+    assert exit_res["payment_method"] == "FREE"
+    assert exit_res["payment_status"] == "PAID"
+    assert exit_res["user_type"] == "STAFF"
+    assert exit_res["vietqr"] is None
+

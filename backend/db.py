@@ -48,7 +48,8 @@ CREATE TABLE IF NOT EXISTS parking_logs (
     overnight_surcharge INTEGER NOT NULL DEFAULT 0,
     payment_method TEXT,
     payment_status TEXT,
-    paid_at TEXT
+    paid_at TEXT,
+    user_type TEXT NOT NULL DEFAULT 'STUDENT'
 )
 """
 
@@ -126,11 +127,12 @@ CREATE TABLE IF NOT EXISTS bank_transactions (
 )
 """
 
+# Ground-truth order for UTH Campus 1: A -> E -> C -> B
 DEFAULT_CAMPUS_ZONES = [
     ("ZONE_A", "Khu A - Sân Ngoài Trời", 250, 0),
-    ("ZONE_B", "Khu B - Sân Ngoài Trời", 450, 0),
+    ("ZONE_E", "Khu E - Nhà Xe Nhiều Tầng (CB-GV-CNV & SV)", 600, 0),
     ("ZONE_C", "Khu C - Sân Ngoài Trời", 450, 0),
-    ("ZONE_E", "Khu E - Nhà Lầu Nhiều Tầng", 600, 0),
+    ("ZONE_B", "Khu B - Sân Ngoài Trời", 450, 0),
 ]
 
 
@@ -206,6 +208,7 @@ def _ensure_parking_logs_columns(cursor):
             "payment_method": "TEXT",
             "payment_status": "TEXT",
             "paid_at": "TEXT",
+            "user_type": "TEXT NOT NULL DEFAULT 'STUDENT'",
         },
     )
 
@@ -237,6 +240,10 @@ def apply_migrations(db_path=None):
                 "INSERT OR IGNORE INTO campus_zones(zone_id, zone_name, max_capacity, current_occupied) VALUES (?, ?, ?, ?)",
                 DEFAULT_CAMPUS_ZONES,
             )
+            # Update zone names if already existed with old names
+            for z_id, z_name, z_cap, _ in DEFAULT_CAMPUS_ZONES:
+                cursor.execute("UPDATE campus_zones SET zone_name = ? WHERE zone_id = ?", (z_name, z_id))
+
             _ensure_parking_logs_columns(cursor)
             _ensure_app_user_columns(cursor)
             for version in range(1, SCHEMA_VERSION + 1):
@@ -255,6 +262,7 @@ def apply_migrations(db_path=None):
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_parking_logs_ticket_id ON parking_logs(ticket_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_parking_logs_card_id ON parking_logs(card_id)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_parking_logs_zone ON parking_logs(zone_assigned)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_parking_logs_user_type ON parking_logs(user_type)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_parking_logs_plate_entry ON parking_logs(plate_entry)")
             if {"status", "entry_time"}.issubset(existing_columns):
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_parking_logs_status_entry_time ON parking_logs(status, entry_time DESC)")
@@ -280,7 +288,7 @@ def fetch_logs(db_path=None) -> pd.DataFrame:
 def get_active_tickets(db_path=None) -> pd.DataFrame:
     with _connect(db_path) as conn:
         return pd.read_sql_query(
-            "SELECT ticket_id, card_id, plate_entry, entry_time, status, review_required, review_reason, zone_assigned, fee, payment_status FROM parking_logs WHERE status IN ('IN_PARKING', 'NEEDS_REVIEW') ORDER BY entry_time DESC",
+            "SELECT ticket_id, card_id, user_type, plate_entry, entry_time, status, review_required, review_reason, zone_assigned, fee, payment_status FROM parking_logs WHERE status IN ('IN_PARKING', 'NEEDS_REVIEW') ORDER BY entry_time DESC",
             conn,
         )
 
@@ -447,9 +455,21 @@ def fetch_parking_events(ticket_id: str | None = None, db_path=None) -> pd.DataF
 
 
 def get_all_zones(db_path=None) -> list[dict]:
+    """Retrieve all campus parking zones ordered strictly by: A -> E -> C -> B."""
     with _connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
-        rows = conn.execute("SELECT zone_id, zone_name, max_capacity, current_occupied FROM campus_zones ORDER BY zone_id ASC").fetchall()
+        rows = conn.execute(
+            """
+            SELECT zone_id, zone_name, max_capacity, current_occupied
+            FROM campus_zones
+            ORDER BY CASE zone_id
+                WHEN 'ZONE_A' THEN 1
+                WHEN 'ZONE_E' THEN 2
+                WHEN 'ZONE_C' THEN 3
+                WHEN 'ZONE_B' THEN 4
+                ELSE 5 END
+            """
+        ).fetchall()
         result = []
         for row in rows:
             data = dict(row)

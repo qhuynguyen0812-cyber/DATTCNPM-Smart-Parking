@@ -12,8 +12,9 @@ from backend.vietqr_service import build_vietqr_url
 
 _STATE: dict[str, Any] = {
     "state": "IDLE",  # "IDLE", "CHECKOUT", "SUCCESS"
-    "lane_name": "CỔNG 2 — LÀN XẢ KHU B & C",
+    "lane_name": "CỔNG 2 — TRẠM RA KHU C (2 LÀN) & KHU B",
     "plate_number": None,
+    "user_type": "STUDENT",
     "fee": 5000,
     "overnight_surcharge": 0,
     "qr_url": None,
@@ -31,6 +32,7 @@ def get_customer_display_state() -> dict[str, Any]:
         if elapsed > 8.0:
             _STATE["state"] = "IDLE"
             _STATE["plate_number"] = None
+            _STATE["user_type"] = "STUDENT"
             _STATE["qr_url"] = None
             _STATE["updated_at"] = time.time()
     return dict(_STATE)
@@ -50,7 +52,8 @@ def trigger_checkout_display(
     card_id: str | None = None,
     ticket_id: str | None = None,
     qr_url: str | None = None,
-    lane_name: str = "CỔNG 2 — LÀN XẢ KHU B & C",
+    lane_name: str = "CỔNG 2 — TRẠM RA KHU C (2 LÀN) & KHU B",
+    user_type: str = "STUDENT",
 ) -> dict[str, Any]:
     """Trigger customer display to show the payment VietQR code."""
     final_qr = qr_url
@@ -73,15 +76,17 @@ def trigger_checkout_display(
         "card_id": card_id,
         "ticket_id": ticket_id,
         "qr_url": final_qr,
+        "user_type": user_type,
     })
 
 
-def trigger_success_display(plate_number: str, amount: int = 5000) -> dict[str, Any]:
+def trigger_success_display(plate_number: str, amount: int = 5000, user_type: str = "STUDENT") -> dict[str, Any]:
     """Trigger customer display to show success checkmark and barrier lift."""
     return set_customer_display_state({
         "state": "SUCCESS",
         "plate_number": plate_number,
         "fee": amount,
+        "user_type": user_type,
         "qr_url": None,
     })
 
@@ -91,6 +96,7 @@ def trigger_idle_display(lane_name: str | None = None) -> dict[str, Any]:
     state_update = {
         "state": "IDLE",
         "plate_number": None,
+        "user_type": "STUDENT",
         "fee": 5000,
         "overnight_surcharge": 0,
         "qr_url": None,

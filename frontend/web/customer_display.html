@@ -312,7 +312,7 @@
       <span>UTH Campus 1 • Trạm Ra Tự Động</span>
     </div>
     <h1>BÃI XE THÔNG MINH ĐA KHU VỰC</h1>
-    <div class="lane-label" id="lane-name">CỔNG 2 — LÀN XẢ KHU B & C</div>
+    <div class="lane-label" id="lane-name">CỔNG 2 — TRẠM RA KHU C (2 LÀN) & KHU B</div>
   </header>
 
   <main>
@@ -333,16 +333,16 @@
           <div class="slots" id="slots-a">--</div>
         </div>
         <div class="zone-box">
-          <div class="name">Khu B</div>
-          <div class="slots" id="slots-b">--</div>
+          <div class="name">Khu E</div>
+          <div class="slots" id="slots-e">--</div>
         </div>
         <div class="zone-box">
           <div class="name">Khu C</div>
           <div class="slots" id="slots-c">--</div>
         </div>
         <div class="zone-box">
-          <div class="name">Khu E</div>
-          <div class="slots" id="slots-e">--</div>
+          <div class="name">Khu B</div>
+          <div class="slots" id="slots-b">--</div>
         </div>
       </div>
     </div>
@@ -472,8 +472,18 @@
         viewCheckout.classList.add('hidden');
         viewSuccess.classList.remove('hidden');
 
+        const isStaff = (data.user_type === 'STAFF') || (data.fee === 0);
+        const titleEl = document.querySelector('.success-title');
+        if (titleEl) {
+          titleEl.textContent = isStaff ? 'XÁC THỰC THẺ CÁN BỘ - GIẢNG VIÊN' : 'THANH TOÁN THÀNH CÔNG!';
+        }
+
         document.getElementById('success-plate').innerHTML = `Biển số: <strong>${data.plate_number || ''}</strong>`;
-        document.getElementById('success-amount').innerHTML = `Số tiền: <strong>${(data.fee || 5000).toLocaleString('vi-VN')} VNĐ</strong> (MBBank)`;
+        if (isStaff) {
+          document.getElementById('success-amount').innerHTML = `<span style="color: #38bdf8; font-weight: 800;">CB-GV-CNV: MIỄN PHÍ GỬI XE (0 VNĐ)</span>`;
+        } else {
+          document.getElementById('success-amount').innerHTML = `Số tiền: <strong>${(data.fee || 5000).toLocaleString('vi-VN')} VNĐ</strong> (MBBank)`;
+        }
 
         if (lastAudioState !== 'SUCCESS') {
           playBeep();
