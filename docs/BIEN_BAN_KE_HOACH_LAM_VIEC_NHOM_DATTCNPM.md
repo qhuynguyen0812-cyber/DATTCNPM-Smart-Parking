@@ -85,19 +85,19 @@
 | 2.4 | Thiết kế Wireframe/UI Mockup cho Trạm POS đa làn & Dashboard 4 khu | **Đặng Đình Khang** | Thị Trâm | Bản thiết kế giao diện Figma |
 | **WBS 3.0** | **Hiện thực hóa phần mềm & Tích hợp (Sprint 3)** | | | |
 | 3.1 | Tái cấu trúc Backend Service theo mô hình phân tầng chuẩn mực | **Nguyễn Quang Huy** | Đình Khang | Module `backend/` |
-| 3.2 | Hiện thực hóa Core API Xe vào Cổng 1 & Xe ra Trạm B/C/AE (Khớp biển) | **Nguyễn Quang Huy** | Đình Khang | `backend/parking_service.py` |
-| 3.3 | Phát triển module Tính phí đồng giá 5k & Phụ phí qua đêm 5k (Tổng 10k) | **Nguyễn Quang Huy** | Xuân Hoàng | Module tính tiền |
+| 3.2 | Hiện thực hóa Core API Xe vào Cổng 1 & Xe ra Trạm C (Bốt 2 làn), Trạm B (4 làn), Trạm A-E (Khớp biển & Tự động mở Barrier) | **Nguyễn Quang Huy** | Đình Khang | `backend/parking_service.py` & API routes |
+| 3.3 | Phát triển module Tính phí đồng giá 5k, Phụ phí qua đêm 5k & Miễn phí 100% (0đ) cho Cán bộ - Giảng viên | **Nguyễn Quang Huy** | Xuân Hoàng | Module tính tiền tariff engine |
 | 3.4 | Tích hợp dịch vụ Sinh mã VietQR 5k/10k động chuẩn Napas 247 | **Nguyễn Quang Huy** | Đình Khang | Module VietQR Payment |
 | 3.5 | Tối ưu Pipeline AI Vision ALPR nhận diện biển số xe máy từ Camera sau | **Nguyễn Quang Huy** | Xuân Hoàng | `backend/alpr_service.py` |
-| 3.6 | Xây dựng Thuật toán Điều phối Làn linh hoạt & Đếm sức chứa 4 khu | **Đặng Đình Khang** | Quang Huy | Thuật toán điều phối |
+| 3.6 | Xây dựng Thuật toán Điều phối xe ưu tiên B ➔ C ➔ A ➔ E & Quản lý Sức chứa toàn trường 2.100 xe | **Đặng Đình Khang** | Quang Huy | Thuật toán điều phối & sức chứa |
 | 3.7 | Xây dựng toàn bộ Giao diện POS Trạm bảo vệ: Chọn cổng/làn, quét thẻ | **Đặng Đình Khang** | Quang Huy | `frontend/web/app.js` & `index.html` |
-| 3.8 | Thiết kế Modal Popup hiển thị Mã VietQR 5k/10k tự động khi xe ra | **Đặng Đình Khang** | Quang Huy | Giao diện thanh toán QR |
+| 3.8 | Phát triển Màn hình phụ Customer Display (Đồng bộ VietQR Napas 247 & Badge Miễn phí Cán bộ) | **Đặng Đình Khang** | Quang Huy | `frontend/web/customer_display.html` |
 | 3.9 | Xây dựng Dashboard Sơ đồ 4 khu hiển thị tỷ lệ lấp đầy bãi xe UTH | **Đặng Đình Khang** | Thị Trâm | Giao diện Dashboard Sức chứa |
 | 3.10 | Xây dựng module Quản lý Ca trực bảo vệ & Báo cáo đối soát theo cổng | **Nguyễn Xuân Hoàng** | Quang Huy | API & Màn hình chốt ca |
 | 3.11 | Xây dựng quy trình Xử lý sự cố mất thẻ xe (truy vết ảnh camera sau) | **Nguyễn Xuân Hoàng** | Quang Huy | Module xử lý mất thẻ |
 | **WBS 4.0** | **Kiểm thử & Đảm bảo chất lượng (Sprint 4)** | | | |
 | 4.1 | Lập Kế hoạch kiểm thử (Test Plan) & Ma trận trường hợp kiểm thử | **Thạch Thị Trâm** | Xuân Hoàng | File `docs/TEST_PLAN.md` |
-| 4.2 | Viết Unit Test và Integration Test tự động bằng `pytest` (>40 test cases) | **Nguyễn Xuân Hoàng** | Quang Huy | Thư mục `tests/` |
+| 4.2 | Xây dựng Bộ kiểm thử tự động hóa toàn diện bằng pytest (267/267 test cases đạt 100% pass) | **Nguyễn Xuân Hoàng** | Quang Huy | Thư mục `tests/` (267 tests) |
 | 4.3 | Đánh giá Benchmark độ chính xác ALPR trên tập dữ liệu xe máy UTH | **Nguyễn Xuân Hoàng** | Quang Huy | Báo cáo Benchmark Accuracy |
 | 4.4 | Kiểm thử bảo mật (Phân quyền RBAC, Hash PBKDF2, Lockout brute-force) | **Nguyễn Quang Huy** | Đình Khang | Báo cáo Security Audit |
 | **WBS 5.0** | **Đóng gói, Viết Báo cáo & Nghiệm thu** | | | |
