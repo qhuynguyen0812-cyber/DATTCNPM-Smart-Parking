@@ -132,7 +132,7 @@ DEFAULT_CAMPUS_ZONES = [
     ("ZONE_A", "Khu A - Sân Ngoài Trời", 250, 0),
     ("ZONE_E", "Khu E - Nhà Xe 4 Tầng (Tầng dưới CB-GV-CNV, Lầu trên cùng SV)", 600, 0),
     ("ZONE_C", "Khu C - Sân Ngoài Trời", 450, 0),
-    ("ZONE_B", "Khu B - Sân Ngoài Trời", 450, 0),
+    ("ZONE_B", "Khu B - Đại Sân Ngoài Trời", 800, 0),
 ]
 
 
@@ -240,9 +240,9 @@ def apply_migrations(db_path=None):
                 "INSERT OR IGNORE INTO campus_zones(zone_id, zone_name, max_capacity, current_occupied) VALUES (?, ?, ?, ?)",
                 DEFAULT_CAMPUS_ZONES,
             )
-            # Update zone names if already existed with old names
+            # Update zone names and max_capacity if already existed
             for z_id, z_name, z_cap, _ in DEFAULT_CAMPUS_ZONES:
-                cursor.execute("UPDATE campus_zones SET zone_name = ? WHERE zone_id = ?", (z_name, z_id))
+                cursor.execute("UPDATE campus_zones SET zone_name = ?, max_capacity = ? WHERE zone_id = ?", (z_name, z_cap, z_id))
 
             _ensure_parking_logs_columns(cursor)
             _ensure_app_user_columns(cursor)

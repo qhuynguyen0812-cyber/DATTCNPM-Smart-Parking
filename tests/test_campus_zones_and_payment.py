@@ -51,7 +51,7 @@ def test_campus_zone_occupancy_update(tmp_path):
     assert update_zone_occupancy("ZONE_B", delta=10, db_path=test_db)
     status_b = get_zone_status("ZONE_B", test_db)
     assert status_b["current_occupied"] == 10
-    assert status_b["available_slots"] == 440
+    assert status_b["available_slots"] == 790
 
     # Decrement
     assert update_zone_occupancy("ZONE_B", delta=-5, db_path=test_db)

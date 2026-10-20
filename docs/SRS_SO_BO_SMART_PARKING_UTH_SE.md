@@ -19,14 +19,15 @@ Tài liệu Đặc tả Yêu cầu Phần mềm (Software Requirements Specifica
 ### 1.2. Phạm vi sản phẩm (Product Scope)
 Hệ thống là giải pháp phần mềm quản trị bãi xe máy tập trung và đa điểm kiểm soát:
 - **Địa bàn**: Khuôn viên Cơ sở 1 UTH (Số 2 Võ Oanh, Phường 25 / Thạnh Mỹ Tây, Bình Thạnh).
-- **Phân khu quản lý**: 4 khu vực đỗ xe theo thứ tự quy hoạch thực tế **A -> E -> C -> B** gồm: Sân Khu A, Nhà xe Khu E kết cấu thép 4 tầng (các tầng dưới dành riêng cho CB-GV-CNV, chỉ duy nhất lầu trên cùng cho Sinh viên), Sân Khu C và Sân Khu B.
+- **Phân khu quản lý & Định mức sức chứa (Tổng 2.100 xe)**: 4 khu vực đỗ xe theo thứ tự quy hoạch thực tế **A -> E -> C -> B** gồm: Sân Khu A (250 xe), Nhà xe Khu E kết cấu thép 4 tầng (600 xe: các tầng dưới dành riêng cho CB-GV-CNV, chỉ duy nhất lầu trên cùng cho Sinh viên), Sân Khu C (450 xe) và Đại Sân Khu B (800 xe).
 - **Mạng lưới trạm kiểm soát**:
   - *Cổng 1 (Võ Oanh)*: Trạm vào 4 làn song song.
-  - *Cổng 2*: Trạm xả Khu C (1 trạm gồm 2 làn) và Trạm xả Khu B (4 làn).
+  - *Cổng 2*: Trạm xả Khu C (1 trạm bốt di động gồm 2 làn song song) và Trạm xả Khu B (4 làn).
   - *Cổng 3*: Trạm xả Khu A & E (2 làn).
-- **Công nghệ cốt lõi**:
+- **Công nghệ & Thiết bị trạm bốt (Control Booth)**:
   - Nhận diện biển số tự động (ALPR) qua **1 Camera sau** (chụp đuôi xe máy).
   - Định danh phương tiện bằng **Thẻ trắng chip RFID in logo UTH** (bảo mật tuyệt đối, mắt thường không đọc được số thẻ/biển số).
+  - **Mô hình Trạm bốt kiểm soát 2 làn**: Kiosk di động khung kim loại đặt tim giữa 2 làn xe dưới mái che bạt tiền chế, trang bị màn hình POS chia luồng camera 2 làn, đầu đọc thẻ RFID USB để bàn, rổ đựng thẻ UTH, khay thu tiền mặt và dải gờ giảm tốc cao su vàng-đen điều tiết dừng xe.
   - **Chính sách phí & Phân luồng đỗ xe**:
     - **Cán bộ - Giảng viên - CNV (CB-GV-CNV)**: **Hoàn toàn miễn phí** (0 VNĐ), barrier tự động mở ngay khi quẹt thẻ nhân sự hợp lệ; ưu tiên đỗ tại các tầng dưới của Nhà xe Khu E (không phải leo dốc cao).
     - **Sinh viên / Khách vãng lai**: Thu phí đồng giá **5.000 VNĐ / lượt** trong ngày; phụ phí qua đêm **5.000 VNĐ** (tổng 10.000 VNĐ nếu qua 23h00); nếu gửi tại Nhà xe Khu E thì di chuyển lên **chỉ duy nhất lầu trên cùng**.
@@ -94,7 +95,7 @@ flowchart TD
 - **FR 3.3**: Cung cấp tùy chọn thanh toán tiền mặt (bấm xác nhận 1 chạm) hoặc sinh mã **VietQR động** chứa chính xác số tiền và mã vé để người gửi quét thanh toán tức thì.
 
 ### Nhóm 4: Quản lý Sức chứa 4 Khu (Zone Capacity Monitoring)
-- **FR 4.1**: Thiết lập định mức sức chứa tối đa cho từng khu vực theo thứ tự A - E - C - B: Sân A, Nhà xe Khu E nhiều tầng, Sân C và Sân B.
+- **FR 4.1**: Thiết lập định mức sức chứa tối đa bám sát phân tích thực địa theo thứ tự A - E - C - B: Sân Khu A (250 xe), Nhà xe Khu E 4 tầng (600 xe), Sân Khu C (450 xe) và Đại Sân Khu B (800 xe), tổng sức chứa toàn trường đạt 2.100 xe máy.
 - **FR 4.2**: Tính toán số lượng xe đang đỗ và tỷ lệ phần trăm lấp đầy thời gian thực của từng khu.
 - **FR 4.3**: Hiển thị cảnh báo trực quan khi một khu vực đạt ngưỡng $\ge 90\%$ (sắp đầy) hoặc $100\%$ (hết chỗ).
 

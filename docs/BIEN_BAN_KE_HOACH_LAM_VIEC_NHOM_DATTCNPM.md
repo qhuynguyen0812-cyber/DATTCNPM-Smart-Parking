@@ -28,7 +28,7 @@
 - **Tính kế thừa**: Dự án kế thừa module AI nhận diện biển số (ALPR) từ môn Hệ thống Giao thông Thông minh (ITS) để không mất thời gian nghiên cứu lại thuật toán lõi.
 - **Mở rộng theo hướng Software Engineering**:
   - Chuyển đổi từ mô hình thử nghiệm AI đơn lẻ sang một **Hệ thống Phần mềm Doanh nghiệp Đa khu vực (Enterprise Multi-Zone System)** hoàn chỉnh.
-  - "May đo" chính xác theo **mặt bằng thực tế tại UTH Cơ sở 1 (Số 2 Võ Oanh, Bình Thạnh)** gồm: **4 khu đỗ xe theo thứ tự quy hoạch A - E - C - B (Sân A, Nhà xe Khu E 4 tầng (tầng dưới CB-GV-CNV, chỉ lầu trên cùng cho SV), Sân C, Sân B) và 3 cổng trạm**.
+  - "May đo" chính xác theo **mặt bằng thực tế tại UTH Cơ sở 1 (Số 2 Võ Oanh, Bình Thạnh)** gồm: **4 khu đỗ xe theo thứ tự quy hoạch A - E - C - B (Tổng 2.100 xe: Sân A 250 xe, Nhà xe Khu E 600 xe, Sân C 450 xe, Đại Sân B 800 xe) và 3 cổng trạm**.
   - Khép kín toàn bộ chu trình nghiệp vụ phần mềm: Quản lý vòng đời thẻ trắng RFID UTH, kiểm soát xe vào/ra chéo cổng, tính phí đồng giá 5.000đ + phụ phí qua đêm 5.000đ, thanh toán VietQR động, và đối soát ca trực độc lập theo từng cổng.
 
 ### 3. Phạm vi dự án (Project Scope)
@@ -37,9 +37,9 @@
   - Đối tượng phương tiện: 100% xe máy (xe số, xe ga, xe điện sinh viên và cán bộ).
   - Hạ tầng cổng/làn:
     - *Cổng 1 (Võ Oanh)*: Trạm Vào gồm 4 làn quẹt thẻ song song, có chức năng gán khu đỗ để đếm chính xác sức chứa.
-    - *Cổng 2 (Lối xả)*: Gồm Trạm Ra Khu C (1 trạm gồm 2 làn) và Trạm Ra Khu B (4 làn).
+    - *Cổng 2 (Lối xả)*: Gồm Trạm Ra Khu C (1 trạm bốt di động gồm 2 làn song song) và Trạm Ra Khu B (4 làn).
     - *Cổng 3 (Lối xả)*: Trạm Ra Khu A & Nhà lầu E (2 làn quẹt thẻ ra).
-  - Thiết bị trạm: Máy tính để bàn + 1 Camera chụp sau (Rear Camera ALPR) + Đầu đọc thẻ RFID quẹt tay.
+  - Thiết bị & Bốt trạm kiểm soát: Kiosk di động khung kim loại đặt tim giữa 2 làn dưới mái che bạt tiền chế, màn hình POS chia luồng camera + Đầu đọc thẻ RFID quẹt tay + rổ thẻ UTH + khay tiền mặt + gờ giảm tốc cao su vàng-đen.
   - Định danh & Bảo mật: Thẻ trắng chỉ in logo UTH (không in số/biển số) kết hợp chip RFID bảo mật cao.
   - Chính sách phí: Cán bộ - Giảng viên - CNV (CB-GV-CNV) hoàn toàn miễn phí (0 VNĐ, barrier tự động mở khi quẹt thẻ). Sinh viên / khách vãng lai: đồng giá 5.000 VNĐ / lượt (trong ngày); gửi qua đêm phụ thu 5.000 VNĐ (tổng 10.000 VNĐ).
   - Thanh toán: Tiền mặt hoặc quét mã VietQR 5k/10k động chuẩn Napas 247.
