@@ -30,7 +30,7 @@ def test_api_zones_status_endpoint(tmp_path, monkeypatch):
     assert "zones" in data
     assert len(data["zones"]) == 4
     zone_ids = [z["zone_id"] for z in data["zones"]]
-    assert zone_ids == ["ZONE_A", "ZONE_E", "ZONE_C", "ZONE_B"]
+    assert zone_ids == ["ZONE_B", "ZONE_C", "ZONE_A", "ZONE_E"]
     assert data["total_capacity"] == 250 + 600 + 450 + 800
     assert data["total_available"] == data["total_capacity"]
 

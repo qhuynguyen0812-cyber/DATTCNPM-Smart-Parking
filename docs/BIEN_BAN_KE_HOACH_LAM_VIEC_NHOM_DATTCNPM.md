@@ -28,7 +28,7 @@
 - **Tính kế thừa**: Dự án kế thừa module AI nhận diện biển số (ALPR) từ môn Hệ thống Giao thông Thông minh (ITS) để không mất thời gian nghiên cứu lại thuật toán lõi.
 - **Mở rộng theo hướng Software Engineering**:
   - Chuyển đổi từ mô hình thử nghiệm AI đơn lẻ sang một **Hệ thống Phần mềm Doanh nghiệp Đa khu vực (Enterprise Multi-Zone System)** hoàn chỉnh.
-  - "May đo" chính xác theo **mặt bằng thực tế tại UTH Cơ sở 1 (Số 2 Võ Oanh, Bình Thạnh)** gồm: **4 khu đỗ xe theo thứ tự quy hoạch A - E - C - B (Tổng 2.100 xe: Sân A 250 xe, Nhà xe Khu E 600 xe, Sân C 450 xe, Đại Sân B 800 xe) và 3 cổng trạm**.
+  - "May đo" chính xác theo **mặt bằng thực tế tại UTH Cơ sở 1 (Số 2 Võ Oanh, Bình Thạnh)** gồm: **4 khu đỗ xe với thuật toán điều phối ưu tiên B - C - A - E (Tổng 2.100 xe: Đại Sân B 800 xe, Sân C 450 xe, Sân A 250 xe, Nhà xe Khu E 600 xe) và 3 cổng trạm**.
   - Khép kín toàn bộ chu trình nghiệp vụ phần mềm: Quản lý vòng đời thẻ trắng RFID UTH, kiểm soát xe vào/ra chéo cổng, tính phí đồng giá 5.000đ + phụ phí qua đêm 5.000đ, thanh toán VietQR động, và đối soát ca trực độc lập theo từng cổng.
 
 ### 3. Phạm vi dự án (Project Scope)

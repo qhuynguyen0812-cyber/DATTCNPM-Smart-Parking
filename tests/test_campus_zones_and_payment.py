@@ -15,6 +15,7 @@ from backend.db import (
     get_all_zones,
     get_zone_status,
     recalculate_zone_occupancies,
+    suggest_optimal_zone,
     update_zone_occupancy,
 )
 from backend.parking_service import (
@@ -33,8 +34,8 @@ def test_campus_zones_initialization(tmp_path):
 
     zones = get_all_zones(test_db)
     zone_ids = [z["zone_id"] for z in zones]
-    # Strict ground-truth order: A -> E -> C -> B
-    assert zone_ids == ["ZONE_A", "ZONE_E", "ZONE_C", "ZONE_B"]
+    # Strict ground-truth priority order: B -> C -> A -> E
+    assert zone_ids == ["ZONE_B", "ZONE_C", "ZONE_A", "ZONE_E"]
 
     status_a = get_zone_status("ZONE_A", test_db)
     assert status_a is not None

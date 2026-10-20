@@ -127,12 +127,12 @@ CREATE TABLE IF NOT EXISTS bank_transactions (
 )
 """
 
-# Ground-truth order for UTH Campus 1: A -> E -> C -> B
+# Ground-truth priority order for UTH Campus 1: B -> C -> A -> E
 DEFAULT_CAMPUS_ZONES = [
+    ("ZONE_B", "Khu B - Đại Sân Ngoài Trời", 800, 0),
+    ("ZONE_C", "Khu C - Sân Ngoài Trời", 450, 0),
     ("ZONE_A", "Khu A - Sân Ngoài Trời", 250, 0),
     ("ZONE_E", "Khu E - Nhà Xe 4 Tầng (Tầng dưới CB-GV-CNV, Lầu trên cùng SV)", 600, 0),
-    ("ZONE_C", "Khu C - Sân Ngoài Trời", 450, 0),
-    ("ZONE_B", "Khu B - Đại Sân Ngoài Trời", 800, 0),
 ]
 
 
@@ -455,7 +455,7 @@ def fetch_parking_events(ticket_id: str | None = None, db_path=None) -> pd.DataF
 
 
 def get_all_zones(db_path=None) -> list[dict]:
-    """Retrieve all campus parking zones ordered strictly by: A -> E -> C -> B."""
+    """Retrieve all campus parking zones ordered strictly by priority: B -> C -> A -> E."""
     with _connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
         rows = conn.execute(
@@ -463,10 +463,10 @@ def get_all_zones(db_path=None) -> list[dict]:
             SELECT zone_id, zone_name, max_capacity, current_occupied
             FROM campus_zones
             ORDER BY CASE zone_id
-                WHEN 'ZONE_A' THEN 1
-                WHEN 'ZONE_E' THEN 2
-                WHEN 'ZONE_C' THEN 3
-                WHEN 'ZONE_B' THEN 4
+                WHEN 'ZONE_B' THEN 1
+                WHEN 'ZONE_C' THEN 2
+                WHEN 'ZONE_A' THEN 3
+                WHEN 'ZONE_E' THEN 4
                 ELSE 5 END
             """
         ).fetchall()
@@ -478,6 +478,24 @@ def get_all_zones(db_path=None) -> list[dict]:
             data["occupancy_rate"] = round((data["current_occupied"] / data["max_capacity"] * 100), 1) if data["max_capacity"] > 0 else 0.0
             result.append(data)
         return result
+
+
+def suggest_optimal_zone(user_type: str = "STUDENT", db_path=None) -> str:
+    """Intelligently recommend an available parking zone following UTH priority rules.
+
+    For STAFF: Prioritize ZONE_E (dedicated lower floors), then ZONE_B, ZONE_C, ZONE_A.
+    For STUDENT: Prioritize wide open ground courtyards first: ZONE_B -> ZONE_C -> ZONE_A -> ZONE_E.
+    """
+    zones = get_all_zones(db_path=db_path)
+    clean_user = (user_type or "STUDENT").strip().upper()
+    priority = ["ZONE_E", "ZONE_B", "ZONE_C", "ZONE_A"] if clean_user == "STAFF" else ["ZONE_B", "ZONE_C", "ZONE_A", "ZONE_E"]
+
+    zone_dict = {z["zone_id"]: z for z in zones}
+    for z_id in priority:
+        z = zone_dict.get(z_id)
+        if z and not z["is_full"]:
+            return z_id
+    return priority[0]
 
 
 def get_zone_status(zone_id: str, db_path=None) -> dict | None:
