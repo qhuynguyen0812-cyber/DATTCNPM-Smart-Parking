@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS bank_transactions (
 # Ground-truth order for UTH Campus 1: A -> E -> C -> B
 DEFAULT_CAMPUS_ZONES = [
     ("ZONE_A", "Khu A - Sân Ngoài Trời", 250, 0),
-    ("ZONE_E", "Khu E - Nhà Xe Nhiều Tầng (CB-GV-CNV & SV)", 600, 0),
+    ("ZONE_E", "Khu E - Nhà Xe 4 Tầng (Tầng dưới CB-GV-CNV, Lầu trên cùng SV)", 600, 0),
     ("ZONE_C", "Khu C - Sân Ngoài Trời", 450, 0),
     ("ZONE_B", "Khu B - Sân Ngoài Trời", 450, 0),
 ]

@@ -328,7 +328,7 @@ def create_report():
     p = doc.add_paragraph()
     p.add_run("Hệ thống được thiết kế 'may đo' bám sát chính xác 100% hiện trạng mặt bằng tại UTH Cơ sở 1:")
     p = doc.add_paragraph(style='List Bullet')
-    p.add_run("4 Khu vực đỗ xe trong trường theo thứ tự quy hoạch A - E - C - B: Gồm Khu A (Sân ngoài trời), Khu E (Nhà giữ xe nhiều tầng - CB-GV-CNV & SV), Khu C (Sân ngoài trời), và Khu B (Sân ngoài trời).")
+    p.add_run("4 Khu vực đỗ xe trong trường theo thứ tự quy hoạch A - E - C - B: Gồm Khu A (Sân ngoài trời), Khu E (Nhà xe kết cấu thép 4 tầng: các tầng dưới cho CB-GV-CNV, chỉ duy nhất lầu trên cùng cho sinh viên), Khu C (Sân ngoài trời), và Khu B (Sân ngoài trời).")
     p = doc.add_paragraph(style='List Bullet')
     p.add_run("Cổng 1 (Võ Oanh - Cổng vào tập trung): Gồm 4 làn vào song song, có chức năng quẹt thẻ RFID và chỉ định khu đỗ để theo dõi chính xác sức chứa.")
     p = doc.add_paragraph(style='List Bullet')
@@ -342,7 +342,7 @@ def create_report():
 
     doc.add_heading("3.2. Yêu cầu chức năng cốt lõi (Functional Requirements - FR)", level=2)
     p = doc.add_paragraph(style='List Bullet')
-    p.add_run("FR 1 (Quản lý Xe vào tại Cổng 1): Tiếp nhận quẹt thẻ RFID trên 4 làn vào; phân biệt đối tượng Cán bộ - Giảng viên (miễn phí 0đ) và Sinh viên (5.000đ); Camera sau tự động chụp biển số; nhận diện ALPR; gán khu đỗ (A, E, C, B) và giảm 1 chỗ trống tương ứng; tạo vé trạng thái IN_PARKING.")
+    p.add_run("FR 1 (Quản lý Xe vào tại Cổng 1): Tiếp nhận quẹt thẻ RFID trên 4 làn vào; phân biệt đối tượng Cán bộ - Giảng viên (miễn phí 0đ, tầng dưới Khu E) và Sinh viên (5.000đ, chỉ lầu trên cùng Khu E); Camera sau tự động chụp biển số; nhận diện ALPR; gán khu đỗ (A, E, C, B) và giảm 1 chỗ trống tương ứng; tạo vé trạng thái IN_PARKING.")
     p = doc.add_paragraph(style='List Bullet')
     p.add_run("FR 2 (Quản lý Xe ra & Đối chiếu chéo): Quẹt thẻ tại Trạm C (2 làn), Trạm B (4 làn) (Cổng 2) hoặc Trạm A-E (Cổng 3); Camera sau chụp biển xe ra; tự động đối chiếu với biển xe vào. Nếu MATCH -> cán bộ tự động mở barrier miễn phí 0đ, sinh viên thu phí 5k/10k; nếu MISMATCH -> bật cảnh báo đỏ khóa cổng.")
     p = doc.add_paragraph(style='List Bullet')

@@ -19,7 +19,7 @@ Tài liệu Đặc tả Yêu cầu Phần mềm (Software Requirements Specifica
 ### 1.2. Phạm vi sản phẩm (Product Scope)
 Hệ thống là giải pháp phần mềm quản trị bãi xe máy tập trung và đa điểm kiểm soát:
 - **Địa bàn**: Khuôn viên Cơ sở 1 UTH (Số 2 Võ Oanh, Phường 25 / Thạnh Mỹ Tây, Bình Thạnh).
-- **Phân khu quản lý**: 4 khu vực đỗ xe theo thứ tự quy hoạch thực tế **A -> E -> C -> B** gồm: Sân Khu A, Nhà xe Khu E nhiều tầng (CB-GV-CNV & SV), Sân Khu C và Sân Khu B.
+- **Phân khu quản lý**: 4 khu vực đỗ xe theo thứ tự quy hoạch thực tế **A -> E -> C -> B** gồm: Sân Khu A, Nhà xe Khu E kết cấu thép 4 tầng (các tầng dưới dành riêng cho CB-GV-CNV, chỉ duy nhất lầu trên cùng cho Sinh viên), Sân Khu C và Sân Khu B.
 - **Mạng lưới trạm kiểm soát**:
   - *Cổng 1 (Võ Oanh)*: Trạm vào 4 làn song song.
   - *Cổng 2*: Trạm xả Khu C (1 trạm gồm 2 làn) và Trạm xả Khu B (4 làn).
@@ -27,9 +27,9 @@ Hệ thống là giải pháp phần mềm quản trị bãi xe máy tập trung
 - **Công nghệ cốt lõi**:
   - Nhận diện biển số tự động (ALPR) qua **1 Camera sau** (chụp đuôi xe máy).
   - Định danh phương tiện bằng **Thẻ trắng chip RFID in logo UTH** (bảo mật tuyệt đối, mắt thường không đọc được số thẻ/biển số).
-  - **Chính sách phí**:
-    - **Cán bộ - Giảng viên - CNV (CB-GV-CNV)**: **Hoàn toàn miễn phí** (0 VNĐ), barrier tự động mở ngay khi quẹt thẻ nhân sự hợp lệ.
-    - **Sinh viên / Khách vãng lai**: Thu phí đồng giá **5.000 VNĐ / lượt** trong ngày; phụ phí qua đêm **5.000 VNĐ** (tổng 10.000 VNĐ nếu qua 23h00).
+  - **Chính sách phí & Phân luồng đỗ xe**:
+    - **Cán bộ - Giảng viên - CNV (CB-GV-CNV)**: **Hoàn toàn miễn phí** (0 VNĐ), barrier tự động mở ngay khi quẹt thẻ nhân sự hợp lệ; ưu tiên đỗ tại các tầng dưới của Nhà xe Khu E (không phải leo dốc cao).
+    - **Sinh viên / Khách vãng lai**: Thu phí đồng giá **5.000 VNĐ / lượt** trong ngày; phụ phí qua đêm **5.000 VNĐ** (tổng 10.000 VNĐ nếu qua 23h00); nếu gửi tại Nhà xe Khu E thì di chuyển lên **chỉ duy nhất lầu trên cùng**.
   - Tích hợp thanh toán số **VietQR động** chuẩn Napas 247.
 
 ---
@@ -45,7 +45,7 @@ flowchart TD
 
     subgraph CampusZones["4 KHU VỰC ĐỖ PHƯƠNG TIỆN (THỨ TỰ A - E - C - B)"]
         ZA["Khu A (Sân ngoài trời)"]
-        ZE["Khu E (Nhà xe nhiều tầng CB-GV-CNV & SV)"]
+        ZE["Khu E (Nhà xe 4 tầng: Tầng dưới CB-GV-CNV, lầu trên cùng SV)"]
         ZC["Khu C (Sân ngoài trời)"]
         ZB["Khu B (Sân ngoài trời)"]
     end
@@ -75,7 +75,7 @@ flowchart TD
 ### Nhóm 1: Quản lý Xe vào (Check-in at Gate 1)
 - **FR 1.1**: Hệ thống đọc mã UID từ thẻ trắng RFID qua đầu đọc thẻ USB tại 1 trong 4 làn Cổng 1.
 - **FR 1.2**: Camera sau tự động chụp ảnh biển số xe máy, module AI ALPR nhận diện và trích xuất chuỗi ký tự biển số.
-- **FR 1.3**: Hệ thống phân loại đối tượng gửi xe (Sinh viên vs Cán bộ - Giảng viên) và gán khu vực đỗ (A, E, C, hoặc B) cho lượt gửi xe, tự động giảm 1 chỗ trống của khu vực tương ứng.
+- **FR 1.3**: Hệ thống phân loại đối tượng gửi xe (Sinh viên vs Cán bộ - Giảng viên) và gán khu vực đỗ (A, E, C, hoặc B) cho lượt gửi xe, tự động giảm 1 chỗ trống của khu vực tương ứng. Đối với Khu E (Nhà xe 4 tầng): Các tầng dưới dành riêng cho Cán bộ - Giảng viên; chỉ duy nhất lầu trên cùng (Lầu 3) cho phép sinh viên đỗ.
 - **FR 1.4**: Tạo bản ghi vé xe trạng thái `IN_PARKING` lưu trữ: Mã thẻ UID, đối tượng (`user_type`), biển số nhận diện, ảnh chụp sau, thời gian vào, mã cổng/làn, và ID bảo vệ trực.
 
 ### Nhóm 2: Quản lý Xe ra & Đối chiếu (Check-out at Gate 2 & Gate 3)
