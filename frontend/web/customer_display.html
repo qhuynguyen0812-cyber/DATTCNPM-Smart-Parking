@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>UTH Smart Parking — Màn hình thanh toán</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --accent: #38bdf8;
+      --success: #10b981;
+      --bg: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.85);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at top, #1e293b, #0f172a);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-x: hidden;
+    }
+
+    /* Top Header */
+    header {
+      padding: 1.25rem 1rem 0.75rem;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .uth-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(2, 132, 199, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .uth-badge span.dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+
+    .lane-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1.25rem;
+    }
+
+    .view-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1.5rem;
+      padding: 1.75rem 1.25rem;
+      text-align: center;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(16px);
+      transition: all 0.3s ease;
+    }
+
+    /* State 1: IDLE / WELCOME */
+    .idle-icon-wrap {
+      width: 110px;
+      height: 110px;
+      margin: 0 auto 1.5rem;
+      background: rgba(2, 132, 199, 0.15);
+      border: 2px dashed rgba(56, 189, 248, 0.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .idle-icon-wrap svg {
+      width: 52px;
+      height: 52px;
+      fill: var(--accent);
+    }
+
+    .idle-title {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    .idle-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    .zones-mini-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .zone-box {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 0.75rem;
+      padding: 0.5rem 0.25rem;
+      border: 1px solid var(--border);
+    }
+
+    .zone-box .name {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .zone-box .slots {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-top: 0.1rem;
+    }
+
+    /* State 2: CHECKOUT / QR */
+    .plate-plate {
+      display: inline-block;
+      background: #ffffff;
+      color: #0f172a;
+      border: 3px solid #0f172a;
+      border-radius: 0.6rem;
+      padding: 0.4rem 1.25rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      margin-bottom: 1rem;
+    }
+
+    .fee-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      padding: 0.5rem 1.25rem;
+      border-radius: 9999px;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4);
+    }
+
+    .fee-badge span.surcharge {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #fef08a;
+      margin-top: 0.15rem;
+    }
+
+    .qr-frame {
+      background: #ffffff;
+      border-radius: 1.25rem;
+      padding: 0.85rem;
+      display: inline-block;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      margin-bottom: 1rem;
+    }
+
+    .qr-frame img {
+      display: block;
+      width: 230px;
+      height: 230px;
+      object-fit: contain;
+      border-radius: 0.5rem;
+    }
+
+    .qr-helper {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .bank-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    /* State 3: SUCCESS */
+    .success-icon-wrap {
+      width: 110px;
+      height: 110px;
+      margin: 0 auto 1.5rem;
+      background: rgba(16, 185, 129, 0.2);
+      border: 3px solid var(--success);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: bounce 0.6s ease;
+    }
+
+    .success-icon-wrap svg {
+      width: 58px;
+      height: 58px;
+      fill: var(--success);
+    }
+
+    .success-title {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--success);
+      margin-bottom: 0.5rem;
+    }
+
+    .barrier-alert {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 1rem;
+      padding: 0.85rem;
+      color: #a7f3d0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-top: 1rem;
+    }
+
+    /* Footer */
+    footer {
+      padding: 0.85rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.4);
+      border-top: 1px solid var(--border);
+    }
+
+    /* Animations */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.9); }
+    }
+
+    @keyframes bounce {
+      0% { transform: scale(0.3); opacity: 0; }
+      50% { transform: scale(1.15); }
+      70% { transform: scale(0.95); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="uth-badge">
+      <span class="dot"></span>
+      <span>UTH Campus 1 • Trạm Ra Tự Động</span>
+    </div>
+    <h1>BÃI XE THÔNG MINH ĐA KHU VỰC</h1>
+    <div class="lane-label" id="lane-name">CỔNG 2 — LÀN XẢ KHU B & C</div>
+  </header>
+
+  <main>
+    <!-- View 1: IDLE -->
+    <div class="view-card" id="view-idle">
+      <div class="idle-icon-wrap">
+        <svg viewBox="0 0 24 24">
+          <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+        </svg>
+      </div>
+      <div class="idle-title">SẴN SÀNG QUẸT THẺ</div>
+      <div class="idle-desc">
+        Quý khách vui lòng dừng xe trước vạch dừng và quẹt thẻ RFID Logo UTH vào đầu đọc.
+      </div>
+      <div class="zones-mini-bar" id="zones-mini-bar">
+        <div class="zone-box">
+          <div class="name">Khu A</div>
+          <div class="slots" id="slots-a">--</div>
+        </div>
+        <div class="zone-box">
+          <div class="name">Khu B</div>
+          <div class="slots" id="slots-b">--</div>
+        </div>
+        <div class="zone-box">
+          <div class="name">Khu C</div>
+          <div class="slots" id="slots-c">--</div>
+        </div>
+        <div class="zone-box">
+          <div class="name">Khu E</div>
+          <div class="slots" id="slots-e">--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View 2: CHECKOUT / QR -->
+    <div class="view-card hidden" id="view-checkout">
+      <div class="plate-plate" id="checkout-plate">59X3-12345</div>
+      <div>
+        <div class="fee-badge">
+          <span id="checkout-fee">5.000 VNĐ</span>
+          <span class="surcharge hidden" id="checkout-surcharge">Đã gồm phụ phí lưu đêm +5k</span>
+        </div>
+      </div>
+      <div class="qr-frame">
+        <img id="checkout-qr-img" src="" alt="Mã VietQR Thanh Toán" />
+      </div>
+      <div class="qr-helper">
+        Mở ứng dụng <strong>Ngân hàng bất kỳ</strong> quét mã VietQR Napas 247.<br/>
+        Cần Barrier sẽ tự động mở ngay khi thanh toán thành công!
+      </div>
+      <div class="bank-brand">
+        <span>Tài khoản MBBank: <strong>0325617476</strong></span>
+      </div>
+    </div>
+
+    <!-- View 3: SUCCESS -->
+    <div class="view-card hidden" id="view-success">
+      <div class="success-icon-wrap">
+        <svg viewBox="0 0 24 24">
+          <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+        </svg>
+      </div>
+      <div class="success-title">THANH TOÁN THÀNH CÔNG!</div>
+      <div style="font-size: 1.1rem; color: #fff; margin-bottom: 0.5rem;" id="success-plate">
+        Biển số: <strong>59X3-12345</strong>
+      </div>
+      <div style="font-size: 0.95rem; color: #94a3b8;" id="success-amount">
+        Số tiền đã nhận: <strong>5.000 VNĐ</strong>
+      </div>
+      <div class="barrier-alert">
+        🚀 BARRIER ĐANG MỞ — CHÚC BẠN THƯỢNG LỘ BÌNH AN!
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Hệ thống Phần mềm Bãi đỗ xe Đa khu vực UTH • Nhóm Đặng Đình Khang
+  </footer>
+
+  <script>
+    let currentState = 'IDLE';
+    let lastAudioState = '';
+
+    function playBeep() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch (_) {}
+    }
+
+    async function fetchDisplayState() {
+      try {
+        const res = await fetch('/display/state');
+        if (!res.ok) return;
+        const data = await res.json();
+        renderState(data);
+      } catch (err) {
+        console.warn('Lỗi kết nối màn hình phụ:', err);
+      }
+    }
+
+    async function fetchZonesCapacity() {
+      try {
+        const res = await fetch('/zones/status');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.zones) {
+          data.zones.forEach(z => {
+            const id = z.zone_id.toLowerCase().replace('zone_', '');
+            const el = document.getElementById(`slots-${id}`);
+            if (el) el.textContent = `${z.available_slots}`;
+          });
+        }
+      } catch (_) {}
+    }
+
+    function renderState(data) {
+      const state = (data.state || 'IDLE').toUpperCase();
+      const viewIdle = document.getElementById('view-idle');
+      const viewCheckout = document.getElementById('view-checkout');
+      const viewSuccess = document.getElementById('view-success');
+
+      if (data.lane_name) {
+        document.getElementById('lane-name').textContent = data.lane_name;
+      }
+
+      if (state === 'CHECKOUT') {
+        viewIdle.classList.add('hidden');
+        viewSuccess.classList.add('hidden');
+        viewCheckout.classList.remove('hidden');
+
+        document.getElementById('checkout-plate').textContent = data.plate_number || 'BIỂN SỐ XE';
+        document.getElementById('checkout-fee').textContent = `${(data.fee || 5000).toLocaleString('vi-VN')} VNĐ`;
+
+        const surchargeEl = document.getElementById('checkout-surcharge');
+        if (data.overnight_surcharge && data.overnight_surcharge > 0) {
+          surchargeEl.classList.remove('hidden');
+        } else {
+          surchargeEl.classList.add('hidden');
+        }
+
+        if (data.qr_url) {
+          document.getElementById('checkout-qr-img').src = data.qr_url;
+        }
+      } else if (state === 'SUCCESS') {
+        viewIdle.classList.add('hidden');
+        viewCheckout.classList.add('hidden');
+        viewSuccess.classList.remove('hidden');
+
+        document.getElementById('success-plate').innerHTML = `Biển số: <strong>${data.plate_number || ''}</strong>`;
+        document.getElementById('success-amount').innerHTML = `Số tiền: <strong>${(data.fee || 5000).toLocaleString('vi-VN')} VNĐ</strong> (MBBank)`;
+
+        if (lastAudioState !== 'SUCCESS') {
+          playBeep();
+          lastAudioState = 'SUCCESS';
+        }
+      } else {
+        // IDLE
+        viewCheckout.classList.add('hidden');
+        viewSuccess.classList.add('hidden');
+        viewIdle.classList.remove('hidden');
+        lastAudioState = 'IDLE';
+      }
+    }
+
+    // Polling định kỳ mỗi 1.2 giây
+    setInterval(fetchDisplayState, 1200);
+    setInterval(fetchZonesCapacity, 4000);
+
+    // Lần đầu tải trang
+    fetchDisplayState();
+    fetchZonesCapacity();
+  </script>
+</body>
+</html>

@@ -251,6 +251,12 @@ def reconcile_bank_transaction(
         actor_username="system-mbbank-reconcile",
     )
 
+    try:
+        from backend.customer_display_state import trigger_success_display
+        trigger_success_display(plate_number=ticket.get("plate_entry") or "", amount=amount)
+    except Exception as exc:
+        logger.debug("Customer display notify failed: %s", exc)
+
     # Record reconciled bank transaction
     record_bank_transaction(
         transaction_id=transaction_id,
