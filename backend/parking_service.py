@@ -6,9 +6,20 @@ from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
-from backend.config import DB_PATH
-from backend.db import append_audit_log, append_parking_event
+from backend.config import (
+    DB_PATH,
+    DEFAULT_PARKING_FEE,
+    OVERNIGHT_CUTOFF_HOUR,
+    OVERNIGHT_SURCHARGE,
+)
+from backend.db import (
+    append_audit_log,
+    append_parking_event,
+    fetch_active_ticket_by_card_id,
+    update_zone_occupancy,
+)
 from backend.plate_format import format_vn_plate, normalize_plate_text
+from backend.vietqr_service import build_parking_vietqr
 
 logger = logging.getLogger(__name__)
 
@@ -100,14 +111,14 @@ def _actor_role(actor: Any | None) -> str | None:
 
 def _safe_event(ticket_id: str | None, event_type: str, **kwargs):
     try:
-        append_parking_event(ticket_id, event_type, **kwargs)
+        append_parking_event(ticket_id, event_type, db_path=DB_PATH, **kwargs)
     except Exception as exc:
         logger.warning("append_parking_event failed for %s: %s", event_type, exc)
 
 
 def _safe_audit(actor_username: str | None, actor_role: str | None, action: str, **kwargs):
     try:
-        append_audit_log(actor_username, actor_role, action, **kwargs)
+        append_audit_log(actor_username, actor_role, action, db_path=DB_PATH, **kwargs)
     except Exception as exc:
         logger.warning("append_audit_log failed for %s: %s", action, exc)
 
@@ -127,18 +138,88 @@ def _review_reason(confidence: float | None, manual_override: bool, mismatch: bo
     return ";".join(reasons) or None
 
 
-def vehicle_entry(plate_text: str, image_path: str | None = None, detected_path: str | None = None, plate_path: str | None = None, ocr_confidence: float | None = None, ocr_engine: str | None = None, ocr_text: str | None = None, manual_override: bool = False, ocr_review_required: bool = False, actor: Any | None = None) -> dict[str, Any]:
+def calculate_parking_fee(entry_time_str: str, exit_time_str: str | None = None) -> dict[str, Any]:
+    """Calculate base fee and overnight surcharge (past 23h cutoff or next-day checkout)."""
+    base_fee = DEFAULT_PARKING_FEE
+    overnight_surcharge = 0
+    fmt = "%Y-%m-%d %H:%M:%S"
+
+    try:
+        dt_entry = datetime.strptime((entry_time_str or "").strip(), fmt)
+    except Exception:
+        dt_entry = datetime.now()
+
+    if exit_time_str:
+        try:
+            dt_exit = datetime.strptime(exit_time_str.strip(), fmt)
+        except Exception:
+            dt_exit = datetime.now()
+    else:
+        dt_exit = datetime.now()
+
+    is_overnight = False
+    if dt_exit.date() > dt_entry.date():
+        is_overnight = True
+    elif dt_exit.hour >= OVERNIGHT_CUTOFF_HOUR and dt_entry.hour < OVERNIGHT_CUTOFF_HOUR:
+        is_overnight = True
+
+    if is_overnight:
+        overnight_surcharge = OVERNIGHT_SURCHARGE
+
+    total_fee = base_fee + overnight_surcharge
+    return {
+        "base_fee": base_fee,
+        "overnight_surcharge": overnight_surcharge,
+        "total_fee": total_fee,
+        "is_overnight": is_overnight,
+    }
+
+
+def vehicle_entry(
+    plate_text: str,
+    image_path: str | None = None,
+    detected_path: str | None = None,
+    plate_path: str | None = None,
+    ocr_confidence: float | None = None,
+    ocr_engine: str | None = None,
+    ocr_text: str | None = None,
+    manual_override: bool = False,
+    ocr_review_required: bool = False,
+    actor: Any | None = None,
+    card_id: str | None = None,
+    gate_entry: str | None = "GATE_1",
+    lane_entry: str | None = "LANE_1",
+    zone_assigned: str | None = None,
+) -> dict[str, Any]:
     clean_plate = _sanitize_plate_text(plate_text)
     normalized_plate = _normalized_plate_text(clean_plate)
     if not normalized_plate:
         return {"success": False, "message": "Invalid plate text", "plate_entry": clean_plate}
 
+    clean_card_id = (card_id or "").strip() or None
     confidence = _safe_confidence(ocr_confidence)
     review_reason = _review_reason(confidence, manual_override, ocr_review_required=ocr_review_required)
     review_required = bool(review_reason)
 
     with _write_transaction() as conn:
         cursor = conn.cursor()
+
+        # Check if card_id is already in use by an active ticket
+        if clean_card_id:
+            cursor.execute(
+                "SELECT ticket_id, plate_entry FROM parking_logs WHERE card_id = ? AND status IN (?, ?)",
+                (clean_card_id, ACTIVE_STATUS, NEEDS_REVIEW_STATUS),
+            )
+            card_row = cursor.fetchone()
+            if card_row is not None:
+                return {
+                    "success": False,
+                    "message": f"Card ID {clean_card_id} is already in use by active ticket {card_row[0]}",
+                    "ticket_id": card_row[0],
+                    "plate_entry": card_row[1],
+                    "card_id": clean_card_id,
+                }
+
         placeholders = ", ".join(["?"] * len(BLOCKING_ACTIVE_STATUSES))
         cursor.execute(
             f"SELECT ticket_id, plate_entry, entry_time, status FROM parking_logs WHERE status IN ({placeholders}) ORDER BY entry_time DESC",
@@ -171,6 +252,17 @@ def vehicle_entry(plate_text: str, image_path: str | None = None, detected_path:
             "cancel_reason": "TEXT",
             "entry_actor": "TEXT",
             "exit_actor": "TEXT",
+            "card_id": "TEXT",
+            "gate_entry": "TEXT",
+            "lane_entry": "TEXT",
+            "zone_assigned": "TEXT",
+            "gate_exit": "TEXT",
+            "lane_exit": "TEXT",
+            "fee": "INTEGER NOT NULL DEFAULT 5000",
+            "overnight_surcharge": "INTEGER NOT NULL DEFAULT 0",
+            "payment_method": "TEXT",
+            "payment_status": "TEXT",
+            "paid_at": "TEXT",
         }
         for column_name, column_type in required_columns.items():
             if column_name not in existing_columns:
@@ -188,6 +280,32 @@ def vehicle_entry(plate_text: str, image_path: str | None = None, detected_path:
             confidence, None, ocr_engine, None, (ocr_text or "").strip() or None, None,
             1 if manual_override else 0, 0, 1 if review_required else 0, review_reason, _actor_name(actor),
         ]
+
+        if "card_id" in existing_columns:
+            insert_columns.append("card_id")
+            insert_values.append(clean_card_id)
+        if "gate_entry" in existing_columns:
+            insert_columns.append("gate_entry")
+            insert_values.append(gate_entry)
+        if "lane_entry" in existing_columns:
+            insert_columns.append("lane_entry")
+            insert_values.append(lane_entry)
+        if "zone_assigned" in existing_columns:
+            insert_columns.append("zone_assigned")
+            insert_values.append(zone_assigned)
+        if "fee" in existing_columns:
+            insert_columns.append("fee")
+            insert_values.append(DEFAULT_PARKING_FEE)
+        if "overnight_surcharge" in existing_columns:
+            insert_columns.append("overnight_surcharge")
+            insert_values.append(0)
+        if "payment_status" in existing_columns:
+            insert_columns.append("payment_status")
+            insert_values.append("UNPAID")
+        if "payment_method" in existing_columns:
+            insert_columns.append("payment_method")
+            insert_values.append(None)
+
         if "plate_number" in existing_columns and "plate_number" not in insert_columns:
             insert_columns.insert(1, "plate_number")
             insert_values.insert(1, clean_plate)
@@ -195,19 +313,65 @@ def vehicle_entry(plate_text: str, image_path: str | None = None, detected_path:
             time_index = insert_columns.index("entry_time")
             insert_columns.insert(time_index + 1, "time_in")
             insert_values.insert(time_index + 1, entry_time)
+
         placeholders = ", ".join(["?"] * len(insert_columns))
         columns_sql = ", ".join(insert_columns)
         cursor.execute(f"INSERT INTO parking_logs ({columns_sql}) VALUES ({placeholders})", tuple(insert_values))
 
-    _safe_event(ticket_id, "VEHICLE_ENTRY", actor_username=_actor_name(actor), actor_role=_actor_role(actor), plate_text=clean_plate, confidence=confidence, source=ocr_engine or "manual", details={"manual_override": manual_override, "review_reason": review_reason}, db_path=DB_PATH)
-    _safe_audit(_actor_name(actor), _actor_role(actor), "vehicle.entry", target_type="ticket", target_id=ticket_id, details_json=_json_details(plate=clean_plate, review_reason=review_reason), db_path=DB_PATH)
-    return {"success": True, "ticket_id": ticket_id, "plate_entry": clean_plate, "entry_time": entry_time, "status": ACTIVE_STATUS, "review_required": review_required, "review_reason": review_reason}
+    if zone_assigned:
+        try:
+            update_zone_occupancy(zone_assigned, delta=1, db_path=DB_PATH)
+        except Exception as exc:
+            logger.warning("Failed to increment occupancy for zone %s: %s", zone_assigned, exc)
+
+    _safe_event(ticket_id, "VEHICLE_ENTRY", actor_username=_actor_name(actor), actor_role=_actor_role(actor), plate_text=clean_plate, confidence=confidence, source=ocr_engine or "manual", details={"manual_override": manual_override, "review_reason": review_reason, "card_id": clean_card_id, "zone": zone_assigned})
+    _safe_audit(_actor_name(actor), _actor_role(actor), "vehicle.entry", target_type="ticket", target_id=ticket_id, details_json=_json_details(plate=clean_plate, card_id=clean_card_id, zone=zone_assigned, review_reason=review_reason))
+    return {
+        "success": True,
+        "ticket_id": ticket_id,
+        "plate_entry": clean_plate,
+        "entry_time": entry_time,
+        "status": ACTIVE_STATUS,
+        "review_required": review_required,
+        "review_reason": review_reason,
+        "card_id": clean_card_id,
+        "gate_entry": gate_entry,
+        "lane_entry": lane_entry,
+        "zone_assigned": zone_assigned,
+        "fee": DEFAULT_PARKING_FEE,
+    }
 
 
-def vehicle_exit(ticket_id: str, plate_text: str, image_path: str | None = None, detected_path: str | None = None, plate_path: str | None = None, ocr_confidence: float | None = None, ocr_engine: str | None = None, ocr_text: str | None = None, manual_override: bool = False, ocr_review_required: bool = False, actor: Any | None = None) -> dict[str, Any]:
+def vehicle_exit(
+    ticket_id: str | None = None,
+    plate_text: str = "",
+    image_path: str | None = None,
+    detected_path: str | None = None,
+    plate_path: str | None = None,
+    ocr_confidence: float | None = None,
+    ocr_engine: str | None = None,
+    ocr_text: str | None = None,
+    manual_override: bool = False,
+    ocr_review_required: bool = False,
+    actor: Any | None = None,
+    card_id: str | None = None,
+    gate_exit: str | None = None,
+    lane_exit: str | None = None,
+    payment_method: str = "CASH",
+    payment_status: str = "PAID",
+) -> dict[str, Any]:
     clean_ticket_id = (ticket_id or "").strip()
+    clean_card_id = (card_id or "").strip()
+
+    if not clean_ticket_id and clean_card_id:
+        active_card_ticket = fetch_active_ticket_by_card_id(clean_card_id, db_path=DB_PATH)
+        if active_card_ticket:
+            clean_ticket_id = active_card_ticket["ticket_id"]
+        else:
+            return {"success": False, "message": f"No active ticket found for Card ID {clean_card_id}"}
+
     if not clean_ticket_id:
-        return {"success": False, "message": "Ticket ID is required"}
+        return {"success": False, "message": "Ticket ID or Card ID is required"}
 
     clean_plate = _sanitize_plate_text(plate_text)
     if not _normalized_plate_text(clean_plate):
@@ -216,12 +380,17 @@ def vehicle_exit(ticket_id: str, plate_text: str, image_path: str | None = None,
     confidence = _safe_confidence(ocr_confidence)
     with _write_transaction() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT ticket_id, plate_entry, status, review_required FROM parking_logs WHERE ticket_id = ?", (clean_ticket_id,))
+        cursor.execute(
+            "SELECT ticket_id, plate_entry, status, review_required, entry_time, zone_assigned, card_id FROM parking_logs WHERE ticket_id = ?",
+            (clean_ticket_id,),
+        )
         row = cursor.fetchone()
         if row is None:
             return {"success": False, "message": "Ticket ID not found"}
 
-        _, plate_entry, status, entry_review_required = row
+        _, plate_entry, status, entry_review_required, entry_time, zone_assigned, stored_card_id = row
+        effective_card_id = clean_card_id or stored_card_id or ""
+
         if status == COMPLETED_STATUS:
             return {"success": False, "message": "Vehicle already checked out"}
         if status == CANCELLED_STATUS:
@@ -235,22 +404,71 @@ def vehicle_exit(ticket_id: str, plate_text: str, image_path: str | None = None,
         review_reason = _review_reason(confidence, manual_override, mismatch=not is_match, ocr_review_required=(ocr_review_required or bool(entry_review_required)))
         review_required = bool(review_reason)
         new_status = NEEDS_REVIEW_STATUS if review_required else COMPLETED_STATUS
+
+        # Calculate tariff and overnight surcharge
+        tariff = calculate_parking_fee(entry_time, exit_time)
+        final_fee = tariff["total_fee"]
+        overnight_surcharge = tariff["overnight_surcharge"]
+        effective_paid_at = exit_time if (new_status == COMPLETED_STATUS and payment_status == "PAID") else None
+
         cursor.execute(
             """
             UPDATE parking_logs
             SET plate_exit = ?, exit_time = ?, status = ?, match_result = ?,
                 exit_image_path = ?, exit_detected_path = ?, exit_plate_path = ?, exit_ocr_confidence = ?, exit_ocr_engine = ?,
-                exit_ocr_text = ?, exit_manual_override = ?, review_required = ?, review_reason = ?, exit_actor = ?
+                exit_ocr_text = ?, exit_manual_override = ?, review_required = ?, review_reason = ?, exit_actor = ?,
+                gate_exit = ?, lane_exit = ?, fee = ?, overnight_surcharge = ?, payment_method = ?, payment_status = ?,
+                paid_at = ?
             WHERE ticket_id = ? AND status = ?
             """,
-            (clean_plate, exit_time, new_status, match_result, image_path, detected_path, plate_path, confidence, ocr_engine, (ocr_text or "").strip() or None, 1 if manual_override else 0, 1 if review_required else 0, review_reason, _actor_name(actor), clean_ticket_id, ACTIVE_STATUS),
+            (
+                clean_plate, exit_time, new_status, match_result,
+                image_path, detected_path, plate_path, confidence, ocr_engine,
+                (ocr_text or "").strip() or None, 1 if manual_override else 0, 1 if review_required else 0, review_reason, _actor_name(actor),
+                gate_exit, lane_exit, final_fee, overnight_surcharge, payment_method, payment_status,
+                effective_paid_at, clean_ticket_id, ACTIVE_STATUS,
+            ),
         )
         if cursor.rowcount == 0:
             return {"success": False, "message": "Vehicle already checked out"}
 
-    _safe_event(clean_ticket_id, "VEHICLE_EXIT", actor_username=_actor_name(actor), actor_role=_actor_role(actor), plate_text=clean_plate, confidence=confidence, source=ocr_engine or "manual", details={"manual_override": manual_override, "match_result": match_result, "review_reason": review_reason}, db_path=DB_PATH)
-    _safe_audit(_actor_name(actor), _actor_role(actor), "vehicle.exit", target_type="ticket", target_id=clean_ticket_id, details_json=_json_details(plate_entry=plate_entry, plate_exit=clean_plate, match_result=match_result, status=new_status), db_path=DB_PATH)
-    return {"success": True, "ticket_id": clean_ticket_id, "plate_entry": plate_entry, "plate_exit": clean_plate, "exit_time": exit_time, "match_result": match_result, "status": new_status, "review_required": review_required, "review_reason": review_reason}
+    # Update zone occupancy if checkout is completed
+    if new_status == COMPLETED_STATUS and zone_assigned:
+        try:
+            update_zone_occupancy(zone_assigned, delta=-1, db_path=DB_PATH)
+        except Exception as exc:
+            logger.warning("Failed to decrement occupancy for zone %s: %s", zone_assigned, exc)
+
+    vietqr_payload = None
+    if payment_method and payment_method.upper() == "VIETQR":
+        vietqr_payload = build_parking_vietqr(
+            card_id=effective_card_id,
+            amount=final_fee,
+            ticket_id=clean_ticket_id,
+        )
+
+    _safe_event(clean_ticket_id, "VEHICLE_EXIT", actor_username=_actor_name(actor), actor_role=_actor_role(actor), plate_text=clean_plate, confidence=confidence, source=ocr_engine or "manual", details={"manual_override": manual_override, "match_result": match_result, "review_reason": review_reason, "fee": final_fee, "payment_method": payment_method})
+    _safe_audit(_actor_name(actor), _actor_role(actor), "vehicle.exit", target_type="ticket", target_id=clean_ticket_id, details_json=_json_details(plate_entry=plate_entry, plate_exit=clean_plate, match_result=match_result, status=new_status, fee=final_fee))
+    return {
+        "success": True,
+        "ticket_id": clean_ticket_id,
+        "card_id": effective_card_id,
+        "plate_entry": plate_entry,
+        "plate_exit": clean_plate,
+        "exit_time": exit_time,
+        "match_result": match_result,
+        "status": new_status,
+        "review_required": review_required,
+        "review_reason": review_reason,
+        "fee": final_fee,
+        "overnight_surcharge": overnight_surcharge,
+        "payment_method": payment_method,
+        "payment_status": payment_status,
+        "gate_exit": gate_exit,
+        "lane_exit": lane_exit,
+        "zone_assigned": zone_assigned,
+        "vietqr": vietqr_payload,
+    }
 
 
 def resolve_review_ticket(ticket_id: str, resolution: str, actor: Any | None = None, note: str | None = None) -> dict[str, Any]:
@@ -262,13 +480,16 @@ def resolve_review_ticket(ticket_id: str, resolution: str, actor: Any | None = N
     new_status = COMPLETED_STATUS if clean_resolution in {"APPROVE_EXIT", "MARK_MATCH"} else NEEDS_REVIEW_STATUS
     match_result = REVIEW_RESOLVED_MATCH if clean_resolution == "MARK_MATCH" else (REVIEW_RESOLVED_APPROVED if clean_resolution == "APPROVE_EXIT" else REVIEW_RESOLVED_REJECTED)
     resolved_at = _utc_like_timestamp()
+    zone_to_decrement = None
+
     with _write_transaction() as conn:
         cursor = conn.cursor()
-        row = cursor.execute("SELECT status FROM parking_logs WHERE ticket_id = ?", (clean_ticket_id,)).fetchone()
+        row = cursor.execute("SELECT status, zone_assigned FROM parking_logs WHERE ticket_id = ?", (clean_ticket_id,)).fetchone()
         if row is None:
             return {"success": False, "message": "Ticket ID not found"}
         if row[0] != NEEDS_REVIEW_STATUS:
             return {"success": False, "message": "Ticket does not require review"}
+        zone_to_decrement = row[1]
         cursor.execute(
             """
             UPDATE parking_logs
@@ -277,8 +498,15 @@ def resolve_review_ticket(ticket_id: str, resolution: str, actor: Any | None = N
             """,
             (new_status, match_result, 0 if new_status == COMPLETED_STATUS else 1, _actor_name(actor), resolved_at, (note or "").strip() or None, clean_ticket_id, NEEDS_REVIEW_STATUS),
         )
-    _safe_event(clean_ticket_id, "REVIEW_RESOLVED", actor_username=_actor_name(actor), actor_role=_actor_role(actor), details={"resolution": clean_resolution, "note": note}, db_path=DB_PATH)
-    _safe_audit(_actor_name(actor), _actor_role(actor), "ticket.resolve", target_type="ticket", target_id=clean_ticket_id, details_json=_json_details(resolution=clean_resolution, note=note), db_path=DB_PATH)
+
+    if new_status == COMPLETED_STATUS and zone_to_decrement:
+        try:
+            update_zone_occupancy(zone_to_decrement, delta=-1, db_path=DB_PATH)
+        except Exception as exc:
+            logger.warning("Failed to decrement occupancy on resolve for zone %s: %s", zone_to_decrement, exc)
+
+    _safe_event(clean_ticket_id, "REVIEW_RESOLVED", actor_username=_actor_name(actor), actor_role=_actor_role(actor), details={"resolution": clean_resolution, "note": note})
+    _safe_audit(_actor_name(actor), _actor_role(actor), "ticket.resolve", target_type="ticket", target_id=clean_ticket_id, details_json=_json_details(resolution=clean_resolution, note=note))
     return {"success": True, "ticket_id": clean_ticket_id, "status": new_status, "match_result": match_result, "resolved_at": resolved_at}
 
 
@@ -287,19 +515,29 @@ def cancel_ticket(ticket_id: str, actor: Any | None = None, reason: str | None =
     clean_reason = (reason or "").strip()
     if not clean_reason:
         return {"success": False, "message": "Cancel reason is required"}
+    zone_to_decrement = None
+
     with _write_transaction() as conn:
         cursor = conn.cursor()
-        row = cursor.execute("SELECT status FROM parking_logs WHERE ticket_id = ?", (clean_ticket_id,)).fetchone()
+        row = cursor.execute("SELECT status, zone_assigned FROM parking_logs WHERE ticket_id = ?", (clean_ticket_id,)).fetchone()
         if row is None:
             return {"success": False, "message": "Ticket ID not found"}
         if row[0] in FINAL_STATUSES:
             return {"success": False, "message": "Finalized ticket cannot be cancelled"}
+        zone_to_decrement = row[1]
         cursor.execute(
             "UPDATE parking_logs SET status = ?, cancel_reason = ?, review_required = 0 WHERE ticket_id = ?",
             (CANCELLED_STATUS, clean_reason, clean_ticket_id),
         )
-    _safe_event(clean_ticket_id, "TICKET_CANCELLED", actor_username=_actor_name(actor), actor_role=_actor_role(actor), details={"reason": clean_reason}, db_path=DB_PATH)
-    _safe_audit(_actor_name(actor), _actor_role(actor), "ticket.cancel", target_type="ticket", target_id=clean_ticket_id, details_json=_json_details(reason=clean_reason), db_path=DB_PATH)
+
+    if zone_to_decrement:
+        try:
+            update_zone_occupancy(zone_to_decrement, delta=-1, db_path=DB_PATH)
+        except Exception as exc:
+            logger.warning("Failed to decrement occupancy on cancel for zone %s: %s", zone_to_decrement, exc)
+
+    _safe_event(clean_ticket_id, "TICKET_CANCELLED", actor_username=_actor_name(actor), actor_role=_actor_role(actor), details={"reason": clean_reason})
+    _safe_audit(_actor_name(actor), _actor_role(actor), "ticket.cancel", target_type="ticket", target_id=clean_ticket_id, details_json=_json_details(reason=clean_reason))
     return {"success": True, "ticket_id": clean_ticket_id, "status": CANCELLED_STATUS}
 
 

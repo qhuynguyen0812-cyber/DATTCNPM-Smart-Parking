@@ -73,8 +73,37 @@ class DeviceStatusResponse(ListResponse):
     pass
 
 
+class ZoneStatusItem(BaseModel):
+    zone_id: str
+    zone_name: str
+    max_capacity: int
+    current_occupied: int
+    available_slots: int
+    is_full: bool
+    occupancy_rate: float
+
+
+class CampusZonesResponse(ApiResponse):
+    zones: list[ZoneStatusItem] = Field(default_factory=list)
+    total_capacity: int = 0
+    total_occupied: int = 0
+    total_available: int = 0
+
+
+class VietQRPayloadResponse(ApiResponse):
+    bank_id: str
+    account_no: str
+    account_name: str
+    amount: int
+    memo: str
+    card_id: str
+    ticket_id: str
+    qr_image_url: str
+
+
 class ParkingLogRecord(BaseModel):
     ticket_id: str | None = None
+    card_id: str | None = None
     plate_entry: str | None = None
     plate_exit: str | None = None
     entry_time: str | None = None
@@ -83,6 +112,16 @@ class ParkingLogRecord(BaseModel):
     match_result: str | None = None
     review_required: int | None = None
     review_reason: str | None = None
+    gate_entry: str | None = None
+    lane_entry: str | None = None
+    zone_assigned: str | None = None
+    gate_exit: str | None = None
+    lane_exit: str | None = None
+    fee: int | None = None
+    overnight_surcharge: int | None = None
+    payment_method: str | None = None
+    payment_status: str | None = None
+    paid_at: str | None = None
 
 
 class ParkingEventRecord(BaseModel):
@@ -125,4 +164,3 @@ class UserRecord(BaseModel):
 class AdminUsersResponse(ApiResponse):
     items: list[dict[str, Any]] = Field(default_factory=list)
     count: int = 0
-

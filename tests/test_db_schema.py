@@ -6,7 +6,7 @@ import pytest
 
 pytestmark = pytest.mark.integration
 
-
+from backend.config import SCHEMA_VERSION
 from backend.db import append_audit_log, apply_migrations, fetch_audit_logs
 
 
@@ -19,7 +19,7 @@ def test_apply_migrations_creates_schema_version(tmp_path):
     conn.close()
 
     assert row is not None
-    assert row[0] == 2
+    assert row[0] == SCHEMA_VERSION
 
 
 def test_apply_migrations_is_idempotent(tmp_path):
@@ -31,7 +31,7 @@ def test_apply_migrations_is_idempotent(tmp_path):
     rows = conn.execute("SELECT version FROM schema_migrations ORDER BY version").fetchall()
     conn.close()
 
-    assert rows == [(1,), (2,)]
+    assert rows == [(v,) for v in range(1, SCHEMA_VERSION + 1)]
 
 
 def test_apply_migrations_migrates_legacy_schema(tmp_path):
@@ -75,6 +75,7 @@ def test_apply_migrations_migrates_legacy_schema(tmp_path):
     conn.close()
 
     assert {"entry_ocr_engine", "exit_ocr_engine", "entry_ocr_text", "exit_ocr_text"}.issubset(parking_columns)
+    assert {"card_id", "zone_assigned", "fee", "overnight_surcharge", "payment_method", "payment_status"}.issubset(parking_columns)
     assert "is_active" in user_columns
     assert migrated_confidence == 0.87
     assert is_active == 1
@@ -91,6 +92,8 @@ def test_apply_migrations_creates_indexes(tmp_path):
     index_names = {row[1] for row in rows}
     assert "idx_parking_logs_status_entry_time" in index_names
     assert "idx_parking_logs_entry_time" in index_names
+    assert "idx_parking_logs_card_id" in index_names
+    assert "idx_parking_logs_zone" in index_names
 
 
 def test_apply_migrations_adds_ocr_engine_columns(tmp_path):
@@ -108,6 +111,9 @@ def test_apply_migrations_adds_ocr_engine_columns(tmp_path):
     assert "exit_ocr_text" in column_names
     assert "entry_manual_override" in column_names
     assert "exit_manual_override" in column_names
+    assert "card_id" in column_names
+    assert "zone_assigned" in column_names
+    assert "fee" in column_names
 
 
 def test_apply_migrations_creates_audit_logs_table(tmp_path):

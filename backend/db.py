@@ -10,6 +10,7 @@ from backend.config import DB_PATH, SCHEMA_VERSION
 PARKING_LOGS_SCHEMA = """
 CREATE TABLE IF NOT EXISTS parking_logs (
     ticket_id TEXT PRIMARY KEY,
+    card_id TEXT,
     plate_entry TEXT,
     plate_exit TEXT,
     entry_time TEXT,
@@ -37,7 +38,17 @@ CREATE TABLE IF NOT EXISTS parking_logs (
     resolution_note TEXT,
     cancel_reason TEXT,
     entry_actor TEXT,
-    exit_actor TEXT
+    exit_actor TEXT,
+    gate_entry TEXT,
+    lane_entry TEXT,
+    zone_assigned TEXT,
+    gate_exit TEXT,
+    lane_exit TEXT,
+    fee INTEGER NOT NULL DEFAULT 5000,
+    overnight_surcharge INTEGER NOT NULL DEFAULT 0,
+    payment_method TEXT,
+    payment_status TEXT,
+    paid_at TEXT
 )
 """
 
@@ -89,6 +100,22 @@ CREATE TABLE IF NOT EXISTS parking_events (
 )
 """
 
+CAMPUS_ZONES_SCHEMA = """
+CREATE TABLE IF NOT EXISTS campus_zones (
+    zone_id TEXT PRIMARY KEY,
+    zone_name TEXT NOT NULL,
+    max_capacity INTEGER NOT NULL,
+    current_occupied INTEGER NOT NULL DEFAULT 0
+)
+"""
+
+DEFAULT_CAMPUS_ZONES = [
+    ("ZONE_A", "Khu A - Sân Ngoài Trời", 250, 0),
+    ("ZONE_B", "Khu B - Sân Ngoài Trời", 450, 0),
+    ("ZONE_C", "Khu C - Sân Ngoài Trời", 450, 0),
+    ("ZONE_E", "Khu E - Nhà Lầu Nhiều Tầng", 600, 0),
+]
+
 
 def _connect(db_path=DB_PATH) -> sqlite3.Connection:
     return sqlite3.connect(db_path)
@@ -122,6 +149,7 @@ def _ensure_parking_logs_columns(cursor):
         "parking_logs",
         {
             "ticket_id": "TEXT PRIMARY KEY",
+            "card_id": "TEXT",
             "plate_entry": "TEXT",
             "plate_exit": "TEXT",
             "entry_time": "TEXT",
@@ -150,6 +178,16 @@ def _ensure_parking_logs_columns(cursor):
             "cancel_reason": "TEXT",
             "entry_actor": "TEXT",
             "exit_actor": "TEXT",
+            "gate_entry": "TEXT",
+            "lane_entry": "TEXT",
+            "zone_assigned": "TEXT",
+            "gate_exit": "TEXT",
+            "lane_exit": "TEXT",
+            "fee": "INTEGER NOT NULL DEFAULT 5000",
+            "overnight_surcharge": "INTEGER NOT NULL DEFAULT 0",
+            "payment_method": "TEXT",
+            "payment_status": "TEXT",
+            "paid_at": "TEXT",
         },
     )
 
@@ -175,6 +213,11 @@ def apply_migrations(db_path=DB_PATH):
             cursor.execute(USERS_SCHEMA)
             cursor.execute(AUDIT_LOGS_SCHEMA)
             cursor.execute(PARKING_EVENTS_SCHEMA)
+            cursor.execute(CAMPUS_ZONES_SCHEMA)
+            cursor.executemany(
+                "INSERT OR IGNORE INTO campus_zones(zone_id, zone_name, max_capacity, current_occupied) VALUES (?, ?, ?, ?)",
+                DEFAULT_CAMPUS_ZONES,
+            )
             _ensure_parking_logs_columns(cursor)
             _ensure_app_user_columns(cursor)
             for version in range(1, SCHEMA_VERSION + 1):
@@ -191,6 +234,8 @@ def apply_migrations(db_path=DB_PATH):
                         "UPDATE parking_logs SET exit_ocr_confidence = COALESCE(exit_ocr_confidence, ocr_confidence) WHERE status = 'COMPLETED' AND exit_ocr_confidence IS NULL"
                     )
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_parking_logs_ticket_id ON parking_logs(ticket_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_parking_logs_card_id ON parking_logs(card_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_parking_logs_zone ON parking_logs(zone_assigned)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_parking_logs_plate_entry ON parking_logs(plate_entry)")
             if {"status", "entry_time"}.issubset(existing_columns):
                 cursor.execute("CREATE INDEX IF NOT EXISTS idx_parking_logs_status_entry_time ON parking_logs(status, entry_time DESC)")
@@ -378,3 +423,102 @@ def fetch_parking_events(ticket_id: str | None = None, db_path=DB_PATH) -> pd.Da
                 params=((ticket_id or "").strip(),),
             )
         return pd.read_sql_query("SELECT * FROM parking_events ORDER BY created_at DESC, id DESC", conn)
+
+
+def get_all_zones(db_path=DB_PATH) -> list[dict]:
+    with _connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute("SELECT zone_id, zone_name, max_capacity, current_occupied FROM campus_zones ORDER BY zone_id ASC").fetchall()
+        result = []
+        for row in rows:
+            data = dict(row)
+            data["available_slots"] = max(0, data["max_capacity"] - data["current_occupied"])
+            data["is_full"] = data["current_occupied"] >= data["max_capacity"]
+            data["occupancy_rate"] = round((data["current_occupied"] / data["max_capacity"] * 100), 1) if data["max_capacity"] > 0 else 0.0
+            result.append(data)
+        return result
+
+
+def get_zone_status(zone_id: str, db_path=DB_PATH) -> dict | None:
+    clean_zone = (zone_id or "").strip().upper()
+    with _connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT zone_id, zone_name, max_capacity, current_occupied FROM campus_zones WHERE UPPER(zone_id) = ?",
+            (clean_zone,),
+        ).fetchone()
+        if not row:
+            return None
+        data = dict(row)
+        data["available_slots"] = max(0, data["max_capacity"] - data["current_occupied"])
+        data["is_full"] = data["current_occupied"] >= data["max_capacity"]
+        data["occupancy_rate"] = round((data["current_occupied"] / data["max_capacity"] * 100), 1) if data["max_capacity"] > 0 else 0.0
+        return data
+
+
+def update_zone_occupancy(zone_id: str, delta: int, db_path=DB_PATH) -> bool:
+    clean_zone = (zone_id or "").strip().upper()
+    with _connect(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            UPDATE campus_zones
+            SET current_occupied = MAX(0, MIN(max_capacity, current_occupied + ?))
+            WHERE UPPER(zone_id) = ?
+            """,
+            (delta, clean_zone),
+        )
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def recalculate_zone_occupancies(db_path=DB_PATH) -> dict[str, int]:
+    """Recount real active IN_PARKING tickets per zone and sync campus_zones table."""
+    with _connect(db_path) as conn:
+        cursor = conn.cursor()
+        rows = cursor.execute(
+            """
+            SELECT zone_assigned, COUNT(*) as cnt
+            FROM parking_logs
+            WHERE status IN ('IN_PARKING', 'NEEDS_REVIEW') AND zone_assigned IS NOT NULL AND zone_assigned != ''
+            GROUP BY zone_assigned
+            """
+        ).fetchall()
+        counts = {row[0].strip().upper(): row[1] for row in rows}
+
+        all_zones = cursor.execute("SELECT zone_id FROM campus_zones").fetchall()
+        for (z_id,) in all_zones:
+            occ = counts.get(z_id.strip().upper(), 0)
+            cursor.execute(
+                "UPDATE campus_zones SET current_occupied = ? WHERE zone_id = ?",
+                (occ, z_id),
+            )
+        conn.commit()
+        return counts
+
+
+def fetch_ticket_by_card_id(card_id: str, db_path=DB_PATH) -> dict | None:
+    clean_card = (card_id or "").strip()
+    if not clean_card:
+        return None
+    with _connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT * FROM parking_logs WHERE card_id = ? ORDER BY entry_time DESC LIMIT 1",
+            (clean_card,),
+        ).fetchone()
+        return dict(row) if row else None
+
+
+def fetch_active_ticket_by_card_id(card_id: str, db_path=DB_PATH) -> dict | None:
+    clean_card = (card_id or "").strip()
+    if not clean_card:
+        return None
+    with _connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT * FROM parking_logs WHERE card_id = ? AND status IN ('IN_PARKING', 'NEEDS_REVIEW') ORDER BY entry_time DESC LIMIT 1",
+            (clean_card,),
+        ).fetchone()
+        return dict(row) if row else None
+

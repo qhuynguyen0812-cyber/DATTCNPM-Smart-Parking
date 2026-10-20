@@ -40,7 +40,7 @@ def _ensure_dir(path: Path) -> Path:
 
 
 APP_TITLE = os.getenv("ITS_APP_TITLE", "Hệ thống nhận diện biển số xe máy")
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 BASE_DIR = _ensure_dir(Path(os.getenv("ITS_BASE_DIR", str(Path.home() / "plate_demo_data"))))
 DB_PATH = BASE_DIR / os.getenv("ITS_DB_NAME", "parking_system.db")
@@ -84,3 +84,15 @@ API_BEARER_TOKENS = {
     "viewer": os.getenv("ITS_API_BEARER_VIEWER_TOKEN", ""),
 }
 API_EXPOSE_INTERNAL_PATHS = _as_bool(os.getenv("ITS_API_EXPOSE_INTERNAL_PATHS"), default=False)
+
+# UTH Campus 1 Parking Tariff & Surcharge Configuration
+DEFAULT_PARKING_FEE = int(os.getenv("ITS_DEFAULT_PARKING_FEE", "5000"))
+OVERNIGHT_SURCHARGE = int(os.getenv("ITS_OVERNIGHT_SURCHARGE", "5000"))
+OVERNIGHT_CUTOFF_HOUR = int(os.getenv("ITS_OVERNIGHT_CUTOFF_HOUR", "23"))
+
+# VietQR / Napas 247 Gateway Integration
+VIETQR_BANK_ID = os.getenv("ITS_VIETQR_BANK_ID", "MB")
+VIETQR_ACCOUNT_NO = os.getenv("ITS_VIETQR_ACCOUNT_NO", "034206012355")
+VIETQR_TEMPLATE = os.getenv("ITS_VIETQR_TEMPLATE", "compact2")
+VIETQR_ACCOUNT_NAME = os.getenv("ITS_VIETQR_ACCOUNT_NAME", "NGUYEN QUANG HUY")
+
