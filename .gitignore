@@ -21,3 +21,4 @@ benchmark_results.json
 data/benchmark/results/
 data/benchmark/review/benchmark_candidates.csv
 data/samples/contact_sheet/*_rot*.jpg
+integrations/mbbank_extracted/

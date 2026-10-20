@@ -109,6 +109,23 @@ CREATE TABLE IF NOT EXISTS campus_zones (
 )
 """
 
+BANK_TRANSACTIONS_SCHEMA = """
+CREATE TABLE IF NOT EXISTS bank_transactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    transaction_id TEXT UNIQUE,
+    account_no TEXT,
+    amount INTEGER NOT NULL,
+    description TEXT,
+    transaction_time TEXT,
+    ticket_id TEXT,
+    card_id TEXT,
+    reconciled INTEGER NOT NULL DEFAULT 0,
+    reconciled_at TEXT,
+    raw_json TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)
+"""
+
 DEFAULT_CAMPUS_ZONES = [
     ("ZONE_A", "Khu A - Sân Ngoài Trời", 250, 0),
     ("ZONE_B", "Khu B - Sân Ngoài Trời", 450, 0),
@@ -117,8 +134,9 @@ DEFAULT_CAMPUS_ZONES = [
 ]
 
 
-def _connect(db_path=DB_PATH) -> sqlite3.Connection:
-    return sqlite3.connect(db_path)
+def _connect(db_path=None) -> sqlite3.Connection:
+    target_db = db_path if db_path is not None else DB_PATH
+    return sqlite3.connect(target_db)
 
 
 def _table_exists(cursor, table_name: str) -> bool:
@@ -205,7 +223,7 @@ def _ensure_app_user_columns(cursor):
     )
 
 
-def apply_migrations(db_path=DB_PATH):
+def apply_migrations(db_path=None):
     with _connect(db_path) as conn:
         with closing(conn.cursor()) as cursor:
             cursor.execute(SCHEMA_MIGRATIONS_SCHEMA)
@@ -214,6 +232,7 @@ def apply_migrations(db_path=DB_PATH):
             cursor.execute(AUDIT_LOGS_SCHEMA)
             cursor.execute(PARKING_EVENTS_SCHEMA)
             cursor.execute(CAMPUS_ZONES_SCHEMA)
+            cursor.execute(BANK_TRANSACTIONS_SCHEMA)
             cursor.executemany(
                 "INSERT OR IGNORE INTO campus_zones(zone_id, zone_name, max_capacity, current_occupied) VALUES (?, ?, ?, ?)",
                 DEFAULT_CAMPUS_ZONES,
@@ -244,34 +263,36 @@ def apply_migrations(db_path=DB_PATH):
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_parking_events_ticket_time ON parking_events(ticket_id, created_at DESC)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_audit_logs_actor ON audit_logs(actor_username)")
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_bank_trans_id ON bank_transactions(transaction_id)")
+            cursor.execute("CREATE INDEX IF NOT EXISTS idx_bank_trans_card_id ON bank_transactions(card_id)")
         conn.commit()
 
 
-def init_db(db_path=DB_PATH):
+def init_db(db_path=None):
     apply_migrations(db_path)
 
 
-def fetch_logs(db_path=DB_PATH) -> pd.DataFrame:
+def fetch_logs(db_path=None) -> pd.DataFrame:
     with _connect(db_path) as conn:
         return pd.read_sql_query("SELECT * FROM parking_logs ORDER BY entry_time DESC", conn)
 
 
-def get_active_tickets(db_path=DB_PATH) -> pd.DataFrame:
+def get_active_tickets(db_path=None) -> pd.DataFrame:
     with _connect(db_path) as conn:
         return pd.read_sql_query(
-            "SELECT ticket_id, plate_entry, entry_time, status, review_required, review_reason FROM parking_logs WHERE status IN ('IN_PARKING', 'NEEDS_REVIEW') ORDER BY entry_time DESC",
+            "SELECT ticket_id, card_id, plate_entry, entry_time, status, review_required, review_reason, zone_assigned, fee, payment_status FROM parking_logs WHERE status IN ('IN_PARKING', 'NEEDS_REVIEW') ORDER BY entry_time DESC",
             conn,
         )
 
 
-def fetch_ticket_detail(ticket_id: str, db_path=DB_PATH) -> dict | None:
+def fetch_ticket_detail(ticket_id: str, db_path=None) -> dict | None:
     with _connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
         row = conn.execute("SELECT * FROM parking_logs WHERE ticket_id = ?", ((ticket_id or "").strip(),)).fetchone()
         return dict(row) if row else None
 
 
-def fetch_app_user(username: str, db_path=DB_PATH) -> dict | None:
+def fetch_app_user(username: str, db_path=None) -> dict | None:
     with _connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
         row = conn.execute(
@@ -281,7 +302,7 @@ def fetch_app_user(username: str, db_path=DB_PATH) -> dict | None:
         return dict(row) if row else None
 
 
-def create_app_user(username: str, password_hash: str, role: str = "viewer", db_path=DB_PATH) -> bool:
+def create_app_user(username: str, password_hash: str, role: str = "viewer", db_path=None) -> bool:
     clean_username = (username or "").strip()
     with _connect(db_path) as conn:
         cursor = conn.cursor()
@@ -293,7 +314,7 @@ def create_app_user(username: str, password_hash: str, role: str = "viewer", db_
         return cursor.rowcount > 0
 
 
-def update_app_user_password_hash(username: str, password_hash: str, db_path=DB_PATH) -> bool:
+def update_app_user_password_hash(username: str, password_hash: str, db_path=None) -> bool:
     clean_username = (username or "").strip()
     with _connect(db_path) as conn:
         cursor = conn.cursor()
@@ -305,7 +326,7 @@ def update_app_user_password_hash(username: str, password_hash: str, db_path=DB_
         return cursor.rowcount > 0
 
 
-def update_login_success(username: str, db_path=DB_PATH) -> bool:
+def update_login_success(username: str, db_path=None) -> bool:
     with _connect(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -316,7 +337,7 @@ def update_login_success(username: str, db_path=DB_PATH) -> bool:
         return cursor.rowcount > 0
 
 
-def update_login_failure(username: str, locked_until: str | None = None, db_path=DB_PATH) -> bool:
+def update_login_failure(username: str, locked_until: str | None = None, db_path=None) -> bool:
     with _connect(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -332,7 +353,7 @@ def update_login_failure(username: str, locked_until: str | None = None, db_path
         return cursor.rowcount > 0
 
 
-def list_app_users(db_path=DB_PATH) -> pd.DataFrame:
+def list_app_users(db_path=None) -> pd.DataFrame:
     with _connect(db_path) as conn:
         return pd.read_sql_query(
             "SELECT username, role, is_active, created_at, failed_login_count, locked_until, last_login_at FROM app_users ORDER BY created_at DESC, username ASC",
@@ -340,7 +361,7 @@ def list_app_users(db_path=DB_PATH) -> pd.DataFrame:
         )
 
 
-def update_app_user_role(username: str, role: str, db_path=DB_PATH) -> bool:
+def update_app_user_role(username: str, role: str, db_path=None) -> bool:
     clean_username = (username or "").strip()
     with _connect(db_path) as conn:
         cursor = conn.cursor()
@@ -349,7 +370,7 @@ def update_app_user_role(username: str, role: str, db_path=DB_PATH) -> bool:
         return cursor.rowcount > 0
 
 
-def update_app_user_active(username: str, is_active: bool, db_path=DB_PATH) -> bool:
+def update_app_user_active(username: str, is_active: bool, db_path=None) -> bool:
     clean_username = (username or "").strip()
     with _connect(db_path) as conn:
         cursor = conn.cursor()
@@ -358,7 +379,7 @@ def update_app_user_active(username: str, is_active: bool, db_path=DB_PATH) -> b
         return cursor.rowcount > 0
 
 
-def delete_app_user(username: str, db_path=DB_PATH) -> bool:
+def delete_app_user(username: str, db_path=None) -> bool:
     clean_username = (username or "").strip()
     with _connect(db_path) as conn:
         cursor = conn.cursor()
@@ -367,7 +388,7 @@ def delete_app_user(username: str, db_path=DB_PATH) -> bool:
         return cursor.rowcount > 0
 
 
-def append_audit_log(actor_username: str | None, actor_role: str | None, action: str, *, target_type: str | None = None, target_id: str | None = None, details_json: str | None = None, db_path=DB_PATH) -> bool:
+def append_audit_log(actor_username: str | None, actor_role: str | None, action: str, *, target_type: str | None = None, target_id: str | None = None, details_json: str | None = None, db_path=None) -> bool:
     with _connect(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -385,12 +406,12 @@ def append_audit_log(actor_username: str | None, actor_role: str | None, action:
         return cursor.rowcount > 0
 
 
-def fetch_audit_logs(db_path=DB_PATH) -> pd.DataFrame:
+def fetch_audit_logs(db_path=None) -> pd.DataFrame:
     with _connect(db_path) as conn:
         return pd.read_sql_query("SELECT * FROM audit_logs ORDER BY created_at DESC, id DESC", conn)
 
 
-def append_parking_event(ticket_id: str | None, event_type: str, *, actor_username: str | None = None, actor_role: str | None = None, plate_text: str | None = None, confidence: float | None = None, source: str | None = None, details: dict | None = None, db_path=DB_PATH) -> bool:
+def append_parking_event(ticket_id: str | None, event_type: str, *, actor_username: str | None = None, actor_role: str | None = None, plate_text: str | None = None, confidence: float | None = None, source: str | None = None, details: dict | None = None, db_path=None) -> bool:
     details_json = json.dumps(details or {}, ensure_ascii=False) if details else None
     with _connect(db_path) as conn:
         cursor = conn.cursor()
@@ -414,7 +435,7 @@ def append_parking_event(ticket_id: str | None, event_type: str, *, actor_userna
         return cursor.rowcount > 0
 
 
-def fetch_parking_events(ticket_id: str | None = None, db_path=DB_PATH) -> pd.DataFrame:
+def fetch_parking_events(ticket_id: str | None = None, db_path=None) -> pd.DataFrame:
     with _connect(db_path) as conn:
         if ticket_id:
             return pd.read_sql_query(
@@ -425,7 +446,7 @@ def fetch_parking_events(ticket_id: str | None = None, db_path=DB_PATH) -> pd.Da
         return pd.read_sql_query("SELECT * FROM parking_events ORDER BY created_at DESC, id DESC", conn)
 
 
-def get_all_zones(db_path=DB_PATH) -> list[dict]:
+def get_all_zones(db_path=None) -> list[dict]:
     with _connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
         rows = conn.execute("SELECT zone_id, zone_name, max_capacity, current_occupied FROM campus_zones ORDER BY zone_id ASC").fetchall()
@@ -439,7 +460,7 @@ def get_all_zones(db_path=DB_PATH) -> list[dict]:
         return result
 
 
-def get_zone_status(zone_id: str, db_path=DB_PATH) -> dict | None:
+def get_zone_status(zone_id: str, db_path=None) -> dict | None:
     clean_zone = (zone_id or "").strip().upper()
     with _connect(db_path) as conn:
         conn.row_factory = sqlite3.Row
@@ -456,7 +477,7 @@ def get_zone_status(zone_id: str, db_path=DB_PATH) -> dict | None:
         return data
 
 
-def update_zone_occupancy(zone_id: str, delta: int, db_path=DB_PATH) -> bool:
+def update_zone_occupancy(zone_id: str, delta: int, db_path=None) -> bool:
     clean_zone = (zone_id or "").strip().upper()
     with _connect(db_path) as conn:
         cursor = conn.cursor()
@@ -472,7 +493,7 @@ def update_zone_occupancy(zone_id: str, delta: int, db_path=DB_PATH) -> bool:
         return cursor.rowcount > 0
 
 
-def recalculate_zone_occupancies(db_path=DB_PATH) -> dict[str, int]:
+def recalculate_zone_occupancies(db_path=None) -> dict[str, int]:
     """Recount real active IN_PARKING tickets per zone and sync campus_zones table."""
     with _connect(db_path) as conn:
         cursor = conn.cursor()
@@ -497,7 +518,7 @@ def recalculate_zone_occupancies(db_path=DB_PATH) -> dict[str, int]:
         return counts
 
 
-def fetch_ticket_by_card_id(card_id: str, db_path=DB_PATH) -> dict | None:
+def fetch_ticket_by_card_id(card_id: str, db_path=None) -> dict | None:
     clean_card = (card_id or "").strip()
     if not clean_card:
         return None
@@ -510,7 +531,7 @@ def fetch_ticket_by_card_id(card_id: str, db_path=DB_PATH) -> dict | None:
         return dict(row) if row else None
 
 
-def fetch_active_ticket_by_card_id(card_id: str, db_path=DB_PATH) -> dict | None:
+def fetch_active_ticket_by_card_id(card_id: str, db_path=None) -> dict | None:
     clean_card = (card_id or "").strip()
     if not clean_card:
         return None
@@ -522,3 +543,12 @@ def fetch_active_ticket_by_card_id(card_id: str, db_path=DB_PATH) -> dict | None
         ).fetchone()
         return dict(row) if row else None
 
+
+def fetch_bank_transactions(limit: int = 100, db_path=None) -> list[dict]:
+    with _connect(db_path) as conn:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            "SELECT * FROM bank_transactions ORDER BY created_at DESC, id DESC LIMIT ?",
+            (limit,),
+        ).fetchall()
+        return [dict(r) for r in rows]
