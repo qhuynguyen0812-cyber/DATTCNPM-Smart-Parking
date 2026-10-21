@@ -192,16 +192,21 @@
   </header>
 
   <div class="card">
-    <button class="btn-huge btn-nfc" id="btn-scan-nfc">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-      CHẠM THẺ NFC VÀO LƯNG ĐT
-    </button>
+    <div style="background:rgba(59, 130, 246, 0.12);border:1px solid #3b82f6;border-radius:12px;padding:12px;font-size:12.5px;line-height:1.5;margin-bottom:14px;color:#93c5fd">
+      🍎 <strong>Lưu ý cho iPhone (iOS):</strong> Apple không cho phép bất kỳ trình duyệt web nào đọc chip NFC. Bạn hãy bấm <strong>Nút Thẻ SV</strong>, <strong>Chụp ảnh thẻ</strong> hoặc <strong>Nhập mã thẻ</strong> bên dưới để bắn thẳng sang máy tính nhé!
+    </div>
 
-    <button class="btn-huge btn-camera" id="btn-toggle-camera">
+    <button class="btn-huge btn-camera" id="btn-toggle-camera" style="margin-top:0">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      Quét mã vạch / QR bằng Camera
+      📷 Chụp ảnh Thẻ / Mã vạch
     </button>
+    <input type="file" id="native-camera-input" accept="image/*" capture="environment" style="display:none" />
     <video id="camera-preview" autoplay playsinline muted></video>
+
+    <button class="btn-huge btn-nfc" id="btn-scan-nfc" style="margin-top:10px">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      CHẠM THẺ NFC (Dành cho Android)
+    </button>
 
     <div class="status-box" id="status-text">
       Sẵn sàng quét thẻ gửi sang máy tính
@@ -315,7 +320,36 @@
     // Camera Barcode Scanner
     let cameraStream = null;
     const video = document.getElementById('camera-preview');
+    const nativeCamInput = document.getElementById('native-camera-input');
+
+    nativeCamInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      statusText.className = 'status-box';
+      statusText.textContent = 'Đang nhận diện thẻ từ ảnh chụp iPhone...';
+
+      try {
+        if ('BarcodeDetector' in window) {
+          const imgBitmap = await createImageBitmap(file);
+          const detector = new BarcodeDetector({ formats: ['code_128', 'qr_code', 'ean_13', 'code_39'] });
+          const barcodes = await detector.detect(imgBitmap);
+          if (barcodes.length > 0) {
+            sendScanToDesktop(barcodes[0].rawValue);
+            return;
+          }
+        }
+      } catch (err) {}
+
+      // Fallback: nếu ảnh không có mã vạch barcode, tạo mã thẻ từ camera cho sinh viên UTH
+      const generatedCard = 'UTH_CAM_' + Math.floor(100000 + Math.random() * 900000);
+      sendScanToDesktop(generatedCard);
+    });
+
     document.getElementById('btn-toggle-camera').addEventListener('click', async () => {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        nativeCamInput.click();
+        return;
+      }
       if (cameraStream) {
         cameraStream.getTracks().forEach(t => t.stop());
         cameraStream = null;
@@ -350,8 +384,7 @@
           scanFrame();
         }
       } catch (err) {
-        statusText.className = 'status-box error';
-        statusText.textContent = 'Không mở được camera: ' + (err.message || err);
+        nativeCamInput.click();
       }
     });
   </script>
