@@ -661,6 +661,31 @@ def cancel_ticket_endpoint(request: Request, ticket_id: str, reason: str = Form(
 WEB_DIR = Path(__file__).resolve().parents[1] / "frontend" / "web"
 
 
+from backend.scanner_bridge import get_latest_scan, push_scan_event
+
+
+@app.post("/scanner/push")
+def api_push_scan(
+    card_id: str = Form(...),
+    plate_text: str | None = Form(default=None),
+    user_type: str = Form(default="STUDENT"),
+    mode: str = Form(default="entry"),
+):
+    ev = push_scan_event(card_id, plate_text=plate_text, user_type=user_type, mode=mode)
+    return {"ok": True, "event": ev}
+
+
+@app.get("/scanner/poll")
+def api_poll_scan(since: float = Query(default=0.0)):
+    ev = get_latest_scan(since)
+    return {"ok": True, "has_new": ev is not None, "scan": ev}
+
+
+@app.get("/scanner", include_in_schema=False)
+def web_scanner():
+    return FileResponse(WEB_DIR / "scanner.html")
+
+
 @app.get("/", include_in_schema=False)
 def web_index():
     return FileResponse(WEB_DIR / "index.html")

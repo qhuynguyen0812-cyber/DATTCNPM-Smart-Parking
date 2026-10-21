@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>UTH Parking — Đầu Đọc Thẻ Di Động</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      margin-bottom: 8px;
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+    h1 { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; }
+    p.subtitle { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .btn-huge {
+      width: 100%;
+      padding: 18px 16px;
+      border-radius: 14px;
+      border: none;
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn-nfc {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    }
+    .btn-nfc:active { transform: scale(0.97); }
+
+    .btn-camera {
+      background: #334155;
+      color: #f1f5f9;
+      margin-top: 10px;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .status-box {
+      min-height: 52px;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      margin-top: 14px;
+    }
+    .status-box.active {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10b981;
+      color: #34d399;
+    }
+    .status-box.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid #ef4444;
+      color: #f87171;
+    }
+
+    .presets {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .preset-btn {
+      padding: 12px 8px;
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 10px;
+      color: #e2e8f0;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+    }
+    .preset-btn:active { background: #334155; }
+
+    .form-group {
+      margin-top: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 12px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      outline: none;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--primary);
+    }
+
+    #camera-preview {
+      width: 100%;
+      height: 220px;
+      border-radius: 12px;
+      background: #000;
+      object-fit: cover;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge"><div class="pulse-dot"></div> KẾT NỐI KHÔNG DÂY TỚI MÁY TÍNH POS</div>
+    <h1>Đầu Đọc Thẻ Di Động UTH</h1>
+    <p class="subtitle">Quét NFC trên điện thoại & Tự động bắn sang máy tính</p>
+  </header>
+
+  <div class="card">
+    <button class="btn-huge btn-nfc" id="btn-scan-nfc">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      CHẠM THẺ NFC VÀO LƯNG ĐT
+    </button>
+
+    <button class="btn-huge btn-camera" id="btn-toggle-camera">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Quét mã vạch / QR bằng Camera
+    </button>
+    <video id="camera-preview" autoplay playsinline muted></video>
+
+    <div class="status-box" id="status-text">
+      Sẵn sàng quét thẻ gửi sang máy tính
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px; font-weight:700; color:#cbd5e1; margin-bottom:8px">Bắn thẻ mẫu thử nghiệm:</div>
+    <div class="presets">
+      <button class="preset-btn" id="preset-sv">
+        🎓 Thẻ SV (5k)<br><span style="color:#94a3b8;font-size:11px">UTH_SV_2026_01</span>
+      </button>
+      <button class="preset-btn" id="preset-staff">
+        👔 Cán bộ GV (0đ)<br><span style="color:#94a3b8;font-size:11px">UTH_STAFF_GV_01</span>
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label>Hoặc gõ mã thẻ thủ công:</label>
+      <input type="text" id="manual-card-id" placeholder="Nhập mã thẻ bất kỳ..." />
+    </div>
+
+    <button class="btn-secondary" id="btn-send-manual" style="margin-top:10px">
+      🚀 BẮN MÃ THẺ SANG MÁY TÍNH
+    </button>
+  </div>
+
+  <script>
+    const statusText = document.getElementById('status-text');
+
+    // Beep sound generator
+    function playBeep(success = true) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.setValueAtTime(success ? 1760 : 440, ctx.currentTime);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.15);
+      } catch (e) {}
+      if ('vibrate' in navigator) navigator.vibrate(success ? [100, 50, 100] : [250]);
+    }
+
+    async function sendScanToDesktop(cardId, plateText = null, userType = 'STUDENT') {
+      statusText.className = 'status-box';
+      statusText.textContent = `Đang gửi thẻ ${cardId} sang máy tính...`;
+
+      try {
+        const fd = new FormData();
+        fd.append('card_id', cardId);
+        if (plateText) fd.append('plate_text', plateText);
+        fd.append('user_type', userType);
+        fd.append('mode', 'entry');
+
+        const res = await fetch('/scanner/push', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.ok) {
+          playBeep(true);
+          statusText.className = 'status-box active';
+          statusText.innerHTML = `✅ <strong>ĐÃ BẮN THÀNH CÔNG:</strong> ${cardId}<br><small style="color:#e2e8f0">Máy tính POS đã nhận diện được ngay!</small>`;
+        } else {
+          throw new Error('Lỗi gửi');
+        }
+      } catch (err) {
+        playBeep(false);
+        statusText.className = 'status-box error';
+        statusText.textContent = `❌ Lỗi kết nối: ${err.message}`;
+      }
+    }
+
+    // Preset buttons
+    document.getElementById('preset-sv').addEventListener('click', () => {
+      sendScanToDesktop('UTH_SV_2026_01', '59X3-123.45', 'STUDENT');
+    });
+    document.getElementById('preset-staff').addEventListener('click', () => {
+      sendScanToDesktop('UTH_STAFF_GV_01', '51F-888.88', 'STAFF');
+    });
+
+    document.getElementById('btn-send-manual').addEventListener('click', () => {
+      const val = document.getElementById('manual-card-id').value.trim();
+      if (!val) { alert('Vui lòng nhập mã thẻ'); return; }
+      sendScanToDesktop(val);
+    });
+
+    // Native Web NFC
+    document.getElementById('btn-scan-nfc').addEventListener('click', async () => {
+      if (!('NDEFReader' in window)) {
+        statusText.className = 'status-box error';
+        statusText.textContent = 'Thiết bị hoặc trình duyệt không hỗ trợ Web NFC. Hãy dùng Google Chrome trên điện thoại Android!';
+        return;
+      }
+      try {
+        statusText.className = 'status-box';
+        statusText.textContent = 'Đang sẵn sàng... Hãy áp thẻ vào lưng điện thoại!';
+        const ndef = new NDEFReader();
+        await ndef.scan();
+        ndef.onreading = (event) => {
+          const serial = (event.serialNumber || 'NFC_' + Date.now().toString(16)).toUpperCase();
+          sendScanToDesktop(serial);
+        };
+      } catch (err) {
+        statusText.className = 'status-box error';
+        statusText.textContent = 'Lỗi NFC: ' + (err.message || err);
+      }
+    });
+
+    // Camera Barcode Scanner
+    let cameraStream = null;
+    const video = document.getElementById('camera-preview');
+    document.getElementById('btn-toggle-camera').addEventListener('click', async () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+        video.style.display = 'none';
+        return;
+      }
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
+        video.srcObject = cameraStream;
+        video.style.display = 'block';
+        statusText.textContent = 'Đưa mã vạch thẻ sinh viên vào khung camera...';
+
+        if ('BarcodeDetector' in window) {
+          const detector = new BarcodeDetector({ formats: ['code_128', 'qr_code', 'ean_13'] });
+          const scanFrame = async () => {
+            if (!cameraStream) return;
+            try {
+              const barcodes = await detector.detect(video);
+              if (barcodes.length > 0) {
+                const code = barcodes[0].rawValue;
+                cameraStream.getTracks().forEach(t => t.stop());
+                cameraStream = null;
+                video.style.display = 'none';
+                sendScanToDesktop(code);
+                return;
+              }
+            } catch (e) {}
+            requestAnimationFrame(scanFrame);
+          };
+          scanFrame();
+        }
+      } catch (err) {
+        statusText.className = 'status-box error';
+        statusText.textContent = 'Không mở được camera: ' + (err.message || err);
+      }
+    });
+  </script>
+</body>
+</html>
