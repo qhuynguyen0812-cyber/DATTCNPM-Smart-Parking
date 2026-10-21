@@ -661,6 +661,7 @@ def cancel_ticket_endpoint(request: Request, ticket_id: str, reason: str = Form(
 WEB_DIR = Path(__file__).resolve().parents[1] / "frontend" / "web"
 
 
+from backend.barcode_service import decode_card_barcode
 from backend.scanner_bridge import get_latest_scan, push_scan_event
 
 
@@ -673,6 +674,35 @@ def api_push_scan(
 ):
     ev = push_scan_event(card_id, plate_text=plate_text, user_type=user_type, mode=mode)
     return {"ok": True, "event": ev}
+
+
+@app.post("/scanner/upload-photo")
+def api_scanner_upload_photo(
+    file: UploadFile = File(...),
+    user_type: str = Form(default="STUDENT"),
+    mode: str = Form(default="entry"),
+):
+    validate_upload(file)
+    saved_path = save_uploaded_file(file, "scanner_card")
+    res = decode_card_barcode(saved_path)
+
+    if res.get("success") and res.get("card_id"):
+        card_id = res["card_id"]
+        push_scan_event(card_id, user_type=user_type, mode=mode)
+        return {
+            "ok": True,
+            "detected": True,
+            "card_id": card_id,
+            "format": res.get("format"),
+            "message": f"Đã quét thành công mã vạch {card_id} và gửi sang máy tính!",
+        }
+
+    return {
+        "ok": True,
+        "detected": False,
+        "card_id": None,
+        "message": "Không tìm thấy mã vạch rõ nét trên ảnh. Hãy đưa góc có mã vạch lại gần và đủ sáng nhé!",
+    }
 
 
 @app.get("/scanner/poll")

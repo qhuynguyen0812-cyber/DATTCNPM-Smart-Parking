@@ -326,23 +326,31 @@
       const file = e.target.files && e.target.files[0];
       if (!file) return;
       statusText.className = 'status-box';
-      statusText.textContent = 'Đang nhận diện thẻ từ ảnh chụp iPhone...';
+      statusText.textContent = 'Đang nhận diện mã vạch thẻ sinh viên qua AI...';
 
       try {
-        if ('BarcodeDetector' in window) {
-          const imgBitmap = await createImageBitmap(file);
-          const detector = new BarcodeDetector({ formats: ['code_128', 'qr_code', 'ean_13', 'code_39'] });
-          const barcodes = await detector.detect(imgBitmap);
-          if (barcodes.length > 0) {
-            sendScanToDesktop(barcodes[0].rawValue);
-            return;
-          }
-        }
-      } catch (err) {}
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('user_type', 'STUDENT');
+        fd.append('mode', 'entry');
 
-      // Fallback: nếu ảnh không có mã vạch barcode, tạo mã thẻ từ camera cho sinh viên UTH
-      const generatedCard = 'UTH_CAM_' + Math.floor(100000 + Math.random() * 900000);
-      sendScanToDesktop(generatedCard);
+        const res = await fetch('/scanner/upload-photo', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (data.ok && data.detected && data.card_id) {
+          playBeep(true);
+          statusText.className = 'status-box active';
+          statusText.innerHTML = `✅ <strong>QUÉT THÀNH CÔNG:</strong> ${data.card_id} (${data.format})<br><small style="color:#e2e8f0">Máy tính POS đã nhận diện được ngay!</small>`;
+          return;
+        } else {
+          statusText.className = 'status-box error';
+          statusText.textContent = data.message || 'Không tìm thấy mã vạch trên ảnh';
+          playBeep(false);
+        }
+      } catch (err) {
+        statusText.className = 'status-box error';
+        statusText.textContent = 'Lỗi gửi ảnh: ' + (err.message || err);
+        playBeep(false);
+      }
     });
 
     document.getElementById('btn-toggle-camera').addEventListener('click', async () => {
