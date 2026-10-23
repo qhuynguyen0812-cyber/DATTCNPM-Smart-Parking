@@ -343,6 +343,13 @@ const RENDER = {
       if ($('#entry-gate')) {
         $('#entry-gate').value = e.target.value === 'STAFF' ? 'GATE_E' : 'GATE_A';
       }
+    if ($('#entry-gate')) {
+      $('#entry-gate').addEventListener('change', (e) => {
+        const isStaff = e.target.value === 'GATE_E';
+        $('#entry-user-type').value = isStaff ? 'STAFF' : 'STUDENT';
+        toast(isStaff ? 'Đã chọn Cổng E: Luồng Giảng viên / Cán bộ (0đ Miễn phí)' : 'Đã chọn Cổng A: Luồng Sinh viên (5.000đ)', 'info');
+      });
+    }
     });
 
     $('#btn-preset-sv').addEventListener('click', () => {
