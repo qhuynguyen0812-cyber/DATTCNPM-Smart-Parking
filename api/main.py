@@ -538,7 +538,7 @@ def vehicle_entry(
     file: UploadFile = File(...),
     plate_text: str | None = Form(default=None),
     card_id: str | None = Form(default=None),
-    gate_entry: str | None = Form(default="GATE_1"),
+    gate_entry: str | None = Form(default=None),
     lane_entry: str | None = Form(default="LANE_1"),
     zone_assigned: str | None = Form(default=None),
     user_type: str = Form(default="STUDENT"),

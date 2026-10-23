@@ -324,6 +324,12 @@ const RENDER = {
                 <option value="GUEST">Khách liên hệ (5.000đ)</option>
               </select>
             </label>
+            <label>Cổng vào (Phân luồng UTH)
+              <select id="entry-gate">
+                <option value="GATE_A">Cổng A (Võ Oanh) — Dành riêng Sinh viên</option>
+                <option value="GATE_E">Cổng E — Dành riêng Cán bộ / Giảng viên</option>
+              </select>
+            </label>
             <label>Biển số xe <span class="optional">· tùy chọn</span><input id="entry-plate" placeholder="59X3-123.45" /></label>
           </div>
           <p class="field-help">Có thể quẹt đầu đọc thẻ USB, chạm NFC điện thoại, hoặc bấm Thẻ SV mẫu để thử nghiệm ngay.</p>
@@ -333,18 +339,26 @@ const RENDER = {
 
     const upload = bindUpload('entry');
 
+    $('#entry-user-type').addEventListener('change', (e) => {
+      if ($('#entry-gate')) {
+        $('#entry-gate').value = e.target.value === 'STAFF' ? 'GATE_E' : 'GATE_A';
+      }
+    });
+
     $('#btn-preset-sv').addEventListener('click', () => {
       $('#entry-card').value = 'UTH_SV_2026_01';
       $('#entry-plate').value = '59X3-123.45';
       $('#entry-user-type').value = 'STUDENT';
-      toast('Đã nạp Thẻ Sinh viên mẫu');
+      if ($('#entry-gate')) $('#entry-gate').value = 'GATE_A';
+      toast('Đã nạp Thẻ Sinh viên mẫu (Cổng A)');
     });
 
     $('#btn-preset-staff').addEventListener('click', () => {
       $('#entry-card').value = 'UTH_STAFF_GV_01';
       $('#entry-plate').value = '51F-888.88';
       $('#entry-user-type').value = 'STAFF';
-      toast('Đã nạp Thẻ Giảng viên mẫu (Miễn phí 0đ)');
+      if ($('#entry-gate')) $('#entry-gate').value = 'GATE_E';
+      toast('Đã nạp Thẻ Giảng viên mẫu (Cổng E - 0đ)');
     });
 
     $('#entry-card').addEventListener('keydown', async (e) => {
@@ -408,6 +422,8 @@ const RENDER = {
       if (plateText) fd.append('plate_text', plateText);
       if (cardId) fd.append('card_id', cardId);
       fd.append('user_type', userType);
+      const gateEntry = $('#entry-gate') ? $('#entry-gate').value : 'GATE_A';
+      fd.append('gate_entry', gateEntry);
 
       const btn = $('#entry-submit'), version = state.viewVersion;
       await runPending(btn, 'Đang tạo vé…', async () => {
@@ -454,6 +470,14 @@ const RENDER = {
               <select id="exit-ticket">
                 <option value="">${items.length ? 'Chọn vé (hoặc quẹt thẻ ở trên)' : 'Chưa có vé đang trong bãi'}</option>
                 ${items.map(t => `<option value="${esc(t.ticket_id)}" data-card="${esc(t.card_id || '')}" data-plate="${esc(t.plate_entry || '')}">${esc(t.plate_entry)} · ${esc(t.ticket_id)} (${esc(t.card_id || 'Không thẻ')})</option>`).join('')}
+              </select>
+            </label>
+            <label>Cổng ra (Phân luồng UTH)
+              <select id="exit-gate">
+                <option value="GATE_A">Cổng A (Võ Oanh — Sinh viên)</option>
+                <option value="GATE_B">Cổng B (Sinh viên)</option>
+                <option value="GATE_C">Cổng C (Sinh viên)</option>
+                <option value="GATE_E">Cổng E (Dành riêng Giảng viên & Sinh viên)</option>
               </select>
             </label>
             <label>Hình thức thanh toán
@@ -567,6 +591,8 @@ const RENDER = {
       fd.append('file', f);
       if (plateText) fd.append('plate_text', plateText);
       fd.append('payment_method', paymentMethod);
+      const gateExit = $('#exit-gate') ? $('#exit-gate').value : 'GATE_A';
+      fd.append('gate_exit', gateExit);
 
       const btn = $('#exit-submit'), version = state.viewVersion;
       await runPending(btn, 'Đang đối chiếu…', async () => {

@@ -73,7 +73,7 @@ def run_demo():
     # -------------------------------------------------------------
     # 1. KICH BAN 1: SINH VIEN VAO CONG 1
     # -------------------------------------------------------------
-    print_step("KICH BAN 1: SINH VIEN VAO CONG 1 (VO OANH)")
+    print_step("KICH BAN 1: SINH VIEN VAO CONG A (QUY TAC: SINH VIEN BAT BUOC VAO CONG A)")
     print("  [AI Camera sau]: Chup bien so 59X3-123.45 (Do tin cay 98.6%)")
     print("  [Dau doc RFID]: Quet the trang chip UTH (Ma the: UTH_SV_2026_01)")
     
@@ -83,7 +83,7 @@ def run_demo():
     entry_sv = vehicle_entry(
         plate_text="59X3-12345",
         card_id="UTH_SV_2026_01",
-        gate_entry="GATE_1",
+        gate_entry="GATE_A",
         lane_entry="LANE_1",
         zone_assigned=suggested_zone,
         user_type="STUDENT",
@@ -97,7 +97,7 @@ def run_demo():
     # -------------------------------------------------------------
     # 2. KICH BAN 2: GIANG VIEN / CAN BO VAO CONG 1
     # -------------------------------------------------------------
-    print_step("KICH BAN 2: GIANG VIEN / CAN BO VAO CONG 1")
+    print_step("KICH BAN 2: GIANG VIEN / CAN BO VAO CONG E (QUY TAC: GIANG VIEN BAT BUOC VAO CONG E)")
     print("  [AI Camera sau]: Chup bien so xe giang vien 51F-888.88")
     print("  [Dau doc RFID]: Quet the Cán bộ (Ma the: UTH_STAFF_GV_01)")
     
@@ -107,8 +107,8 @@ def run_demo():
     entry_staff = vehicle_entry(
         plate_text="51F-888.88",
         card_id="UTH_STAFF_GV_01",
-        gate_entry="GATE_1",
-        lane_entry="LANE_2",
+        gate_entry="GATE_E",
+        lane_entry="LANE_E_1",
         zone_assigned=suggested_staff_zone,
         user_type="STAFF",
     )
@@ -118,14 +118,14 @@ def run_demo():
     # -------------------------------------------------------------
     # 3. KICH BAN 3: SINH VIEN RA CONG 2 (TRAM RA KHU C - BOT 2 LAN)
     # -------------------------------------------------------------
-    print_step("KICH BAN 3: SINH VIEN RA CONG 2 & THANH TOAN VIETQR NAPAS 247")
+    print_step("KICH BAN 3: SINH VIEN RA CONG C (QUY TAC: SINH VIEN RA CONG NAO CUNG DUOC)")
     print("  [Dau doc RFID tai bot]: Sinh vien tra the UTH_SV_2026_01 vao ro the do")
     print("  [AI Camera sau]: Chup bien so xe cho xuat ben: 59X3-123.45")
 
     exit_sv = vehicle_exit(
         card_id="UTH_SV_2026_01",
         plate_text="59X3-12345",
-        gate_exit="GATE_2",
+        gate_exit="GATE_C",
         lane_exit="LANE_C_1",
         payment_method="VIETQR",
         payment_status="UNPAID",
@@ -168,15 +168,15 @@ def run_demo():
     # -------------------------------------------------------------
     # 4. KICH BAN 4: GIANG VIEN RA CONG 2 (MIEN PHI 100%)
     # -------------------------------------------------------------
-    print_step("KICH BAN 4: GIANG VIEN / CAN BO RA CONG 2 (MIEN PHI 0 VND)")
+    print_step("KICH BAN 4: GIANG VIEN / CAN BO RA CONG E (QUY TAC: GIANG VIEN BAT BUOC RA CONG E)")
     print("  [Dau doc RFID tai bot]: Giang vien quet the UTH_STAFF_GV_01")
     print("  [AI Camera sau]: Chup bien so xe: 51F-888.88")
 
     exit_staff = vehicle_exit(
         card_id="UTH_STAFF_GV_01",
         plate_text="51F-888.88",
-        gate_exit="GATE_2",
-        lane_exit="LANE_C_2",
+        gate_exit="GATE_E",
+        lane_exit="LANE_E_EXIT",
     )
     print(f"  --> Ket qua doi chieu: {exit_staff['match_result']}")
     print(f"      Doi tuong: {exit_staff['user_type']}")

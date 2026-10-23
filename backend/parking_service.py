@@ -188,6 +188,53 @@ def calculate_parking_fee(entry_time_str: str, exit_time_str: str | None = None,
     }
 
 
+def normalize_gate_name(gate: str | None) -> str:
+    """Normalize user-friendly gate strings to standard identifiers."""
+    if not gate:
+        return ""
+    g = gate.strip().upper().replace(" ", "_").replace("-", "_")
+    if any(k in g for k in ("GATE_E", "CONG_E", "CỔNG_E", "KHU_E")) or g == "E":
+        return "GATE_E"
+    if any(k in g for k in ("GATE_A", "CONG_A", "CỔNG_A", "GATE_1", "CONG_1", "CỔNG_1", "VO_OANH", "VÕ_OANH")) or g in ("A", "1"):
+        return "GATE_A"
+    if any(k in g for k in ("GATE_B", "CONG_B", "CỔNG_B")) or g == "B":
+        return "GATE_B"
+    if any(k in g for k in ("GATE_C", "CONG_C", "CỔNG_C", "GATE_2", "CONG_2")) or g in ("C", "2"):
+        return "GATE_C"
+    return g
+
+
+def validate_gate_routing(user_type: str, gate: str | None, is_entry: bool = True) -> tuple[bool, str, str]:
+    """UTH Campus 1 Gate Routing Rules:
+
+    - Giảng viên / Cán bộ (STAFF): Chỉ đi vào và ra qua Cổng E (Nhà xe Khu E).
+    - Sinh viên (STUDENT): Chỉ được vào mỗi Cổng A. Còn lại cổng nào ra cũng được.
+    """
+    clean_user = (user_type or "STUDENT").strip().upper()
+    norm_gate = normalize_gate_name(gate)
+
+    if is_entry:
+        if clean_user == "STAFF":
+            if not norm_gate or norm_gate in ("GATE_E", "GATE_4"):
+                return True, "GATE_E", ""
+            return False, norm_gate, "Giảng viên / Cán bộ chỉ được đi vào qua Cổng E (Nhà xe Khu E)!"
+        else:  # STUDENT or GUEST
+            if not norm_gate or norm_gate in ("GATE_A", "GATE_1"):
+                return True, "GATE_A", ""
+            if norm_gate == "GATE_E":
+                return False, norm_gate, "Sinh viên chỉ được vào gửi xe qua Cổng A (Võ Oanh)! Vui lòng di chuyển sang Cổng A."
+            return True, norm_gate, ""
+    else:  # Exit
+        if clean_user == "STAFF":
+            if not norm_gate or norm_gate in ("GATE_E", "GATE_4"):
+                return True, "GATE_E", ""
+            return False, norm_gate, "Giảng viên / Cán bộ chỉ được đi ra qua Cổng E!"
+        else:  # STUDENT can exit through ANY gate
+            if not norm_gate:
+                norm_gate = "GATE_A"
+            return True, norm_gate, ""
+
+
 def vehicle_entry(
     plate_text: str,
     image_path: str | None = None,
@@ -200,7 +247,7 @@ def vehicle_entry(
     ocr_review_required: bool = False,
     actor: Any | None = None,
     card_id: str | None = None,
-    gate_entry: str | None = "GATE_1",
+    gate_entry: str | None = None,
     lane_entry: str | None = "LANE_1",
     zone_assigned: str | None = None,
     user_type: str = "STUDENT",
@@ -222,7 +269,16 @@ def vehicle_entry(
         except Exception as _card_ex:
             logger.debug("Failed to lookup card registry: %s", _card_ex)
 
+    valid_gate, effective_gate_entry, gate_err = validate_gate_routing(clean_user_type, gate_entry, is_entry=True)
+    if not valid_gate:
+        return {"success": False, "message": gate_err, "plate_entry": clean_plate, "user_type": clean_user_type}
+    gate_entry = effective_gate_entry
+
     is_staff = clean_user_type == "STAFF"
+    if not zone_assigned:
+        from backend.db import suggest_optimal_zone
+        zone_assigned = "ZONE_E" if is_staff else suggest_optimal_zone("STUDENT", db_path=DB_PATH)
+
     entry_fee = 0 if is_staff else DEFAULT_PARKING_FEE
     entry_payment_status = "PAID" if is_staff else "UNPAID"
     entry_payment_method = "FREE" if is_staff else None
@@ -431,6 +487,11 @@ def vehicle_exit(
         effective_card_id = clean_card_id or stored_card_id or ""
         effective_user_type = (user_type or stored_user_type or "STUDENT").strip().upper()
         is_staff = effective_user_type == "STAFF"
+
+        valid_gate, effective_gate_exit, gate_err = validate_gate_routing(effective_user_type, gate_exit, is_entry=False)
+        if not valid_gate:
+            return {"success": False, "message": gate_err, "plate_exit": clean_plate, "user_type": effective_user_type}
+        gate_exit = effective_gate_exit
 
         if status == COMPLETED_STATUS:
             return {"success": False, "message": "Vehicle already checked out"}

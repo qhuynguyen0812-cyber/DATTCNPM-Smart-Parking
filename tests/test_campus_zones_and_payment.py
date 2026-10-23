@@ -207,11 +207,11 @@ def test_vehicle_entry_exit_staff_free_parking(tmp_path, monkeypatch):
     monkeypatch.setattr("backend.parking_service.DB_PATH", test_db)
     monkeypatch.setattr("backend.db.DB_PATH", test_db)
 
-    # 1. Staff Entry with card ID and user_type=STAFF
+    # 1. Staff Entry with card ID and user_type=STAFF (STAFF MUST enter GATE_E)
     entry_res = vehicle_entry(
         plate_text="51F-888.88",
         card_id="STAFF_CARD_001",
-        gate_entry="GATE_1",
+        gate_entry="GATE_E",
         lane_entry="LANE_1",
         zone_assigned="ZONE_E",
         user_type="STAFF",
@@ -220,11 +220,11 @@ def test_vehicle_entry_exit_staff_free_parking(tmp_path, monkeypatch):
     assert entry_res["fee"] == 0
     assert entry_res["user_type"] == "STAFF"
 
-    # 2. Staff Exit with card ID -> fee=0, payment_method=FREE, payment_status=PAID
+    # 2. Staff Exit with card ID -> fee=0, payment_method=FREE, payment_status=PAID (STAFF MUST exit GATE_E)
     exit_res = vehicle_exit(
         card_id="STAFF_CARD_001",
         plate_text="51F-888.88",
-        gate_exit="GATE_2",
+        gate_exit="GATE_E",
         lane_exit="LANE_EXIT_1",
     )
     assert exit_res["success"] is True
@@ -234,4 +234,83 @@ def test_vehicle_entry_exit_staff_free_parking(tmp_path, monkeypatch):
     assert exit_res["payment_status"] == "PAID"
     assert exit_res["user_type"] == "STAFF"
     assert exit_res["vietqr"] is None
+
+
+def test_campus_gate_routing_policy(tmp_path, monkeypatch):
+    """Test UTH Gate Policy:
+    - STAFF: Only enters and exits GATE_E.
+    - STUDENT: Only enters GATE_A. Can exit through ANY gate.
+    """
+    test_db = tmp_path / "test_gate_routing.db"
+    apply_migrations(test_db)
+    monkeypatch.setattr("backend.parking_service.DB_PATH", test_db)
+    monkeypatch.setattr("backend.db.DB_PATH", test_db)
+
+    # 1. STUDENT tries to enter at GATE_E -> Must be rejected
+    stu_bad_entry = vehicle_entry(
+        plate_text="59X3-111.11",
+        card_id="STU_CARD_01",
+        gate_entry="GATE_E",
+        user_type="STUDENT",
+    )
+    assert stu_bad_entry["success"] is False
+    assert "Cổng A" in stu_bad_entry["message"]
+
+    # 2. STUDENT enters at GATE_A -> Success
+    stu_entry = vehicle_entry(
+        plate_text="59X3-111.11",
+        card_id="STU_CARD_01",
+        gate_entry="GATE_A",
+        user_type="STUDENT",
+    )
+    assert stu_entry["success"] is True
+    assert stu_entry["gate_entry"] == "GATE_A"
+
+    # 3. STUDENT exits at ANY gate (e.g. GATE_C, GATE_B, GATE_E) -> All succeed!
+    stu_exit = vehicle_exit(
+        card_id="STU_CARD_01",
+        plate_text="59X3-111.11",
+        gate_exit="GATE_C",
+    )
+    assert stu_exit["success"] is True
+    assert stu_exit["gate_exit"] == "GATE_C"
+
+    # 4. STAFF tries to enter at GATE_A -> Must be rejected
+    staff_bad_entry = vehicle_entry(
+        plate_text="51F-999.99",
+        card_id="STAFF_CARD_02",
+        gate_entry="GATE_A",
+        user_type="STAFF",
+    )
+    assert staff_bad_entry["success"] is False
+    assert "Cổng E" in staff_bad_entry["message"]
+
+    # 5. STAFF enters at GATE_E -> Success
+    staff_entry = vehicle_entry(
+        plate_text="51F-999.99",
+        card_id="STAFF_CARD_02",
+        gate_entry="GATE_E",
+        user_type="STAFF",
+    )
+    assert staff_entry["success"] is True
+    assert staff_entry["gate_entry"] == "GATE_E"
+
+    # 6. STAFF tries to exit at GATE_B -> Must be rejected
+    staff_bad_exit = vehicle_exit(
+        card_id="STAFF_CARD_02",
+        plate_text="51F-999.99",
+        gate_exit="GATE_B",
+    )
+    assert staff_bad_exit["success"] is False
+    assert "Cổng E" in staff_bad_exit["message"]
+
+    # 7. STAFF exits at GATE_E -> Success
+    staff_exit = vehicle_exit(
+        card_id="STAFF_CARD_02",
+        plate_text="51F-999.99",
+        gate_exit="GATE_E",
+    )
+    assert staff_exit["success"] is True
+    assert staff_exit["gate_exit"] == "GATE_E"
+
 
