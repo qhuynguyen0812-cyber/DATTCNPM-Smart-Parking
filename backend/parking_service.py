@@ -212,6 +212,16 @@ def vehicle_entry(
 
     clean_card_id = (card_id or "").strip() or None
     clean_user_type = (user_type or "STUDENT").strip().upper()
+    if clean_card_id:
+        try:
+            from backend.card_service import get_card
+            registered_card = get_card(clean_card_id, db_path=DB_PATH)
+            if registered_card and registered_card.get("user_type"):
+                if user_type in (None, "", "STUDENT") and registered_card["user_type"] == "STAFF":
+                    clean_user_type = "STAFF"
+        except Exception as _card_ex:
+            logger.debug("Failed to lookup card registry: %s", _card_ex)
+
     is_staff = clean_user_type == "STAFF"
     entry_fee = 0 if is_staff else DEFAULT_PARKING_FEE
     entry_payment_status = "PAID" if is_staff else "UNPAID"

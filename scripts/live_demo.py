@@ -54,7 +54,7 @@ def run_demo():
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
             "UPDATE parking_logs SET status = 'COMPLETED', exit_time = datetime('now') "
-            "WHERE (card_id IN ('UTH_SV_2026_01', 'UTH_STAFF_GV_01') OR plate_entry IN ('59X3-12345', '51F-888.88')) "
+            "WHERE (card_id IN ('UTH_SV_2026_01', 'UTH_STAFF_GV_01', '034206012355') OR plate_entry LIKE '%123%45%' OR plate_entry LIKE '%888%88%') "
             "AND status != 'COMPLETED'"
         )
         conn.commit()

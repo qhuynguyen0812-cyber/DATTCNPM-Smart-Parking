@@ -658,6 +658,61 @@ def cancel_ticket_endpoint(request: Request, ticket_id: str, reason: str = Form(
     return ok({"result": result})
 
 
+from backend.card_service import (
+    assign_blank_slot,
+    delete_card,
+    get_card,
+    list_cards,
+    save_card,
+)
+
+
+@app.get("/cards")
+def api_list_cards():
+    cards = list_cards()
+    return ok({"items": cards, "count": len(cards)})
+
+
+@app.get("/cards/{card_uid}")
+def api_get_card(card_uid: str):
+    c = get_card(card_uid)
+    if not c:
+        return error_payload("CARD_NOT_FOUND", f"Thẻ với mã {card_uid} chưa được đăng ký")
+    return ok({"card": c})
+
+
+@app.post("/cards")
+def api_save_card(
+    card_uid: str = Form(...),
+    label: str = Form(...),
+    user_type: str = Form(default="STUDENT"),
+    default_plate: str | None = Form(default=None),
+    is_active: bool = Form(default=True),
+    note: str | None = Form(default=None),
+):
+    c = save_card(card_uid=card_uid, label=label, user_type=user_type, default_plate=default_plate, is_active=is_active, note=note)
+    return ok({"card": c, "message": f"Đã lưu thẻ {card_uid} thành công"})
+
+
+@app.post("/cards/assign-slot")
+def api_assign_blank_slot(
+    slot_number: int = Form(...),
+    real_card_uid: str = Form(...),
+):
+    try:
+        c = assign_blank_slot(slot_number, real_card_uid)
+        return ok({"card": c, "message": f"Đã gán thành công Thẻ Trắng #{slot_number} vào UID {real_card_uid}"})
+    except Exception as ex:
+        return error_payload("ASSIGN_FAILED", str(ex))
+
+
+@app.delete("/cards/{card_uid}")
+def api_delete_card(card_uid: str):
+    deleted = delete_card(card_uid)
+    return ok({"deleted": deleted, "card_uid": card_uid})
+
+
+
 WEB_DIR = Path(__file__).resolve().parents[1] / "frontend" / "web"
 
 

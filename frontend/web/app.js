@@ -42,6 +42,7 @@ const ICONS = {
   moon: '<path d="M20.5 13.2A9 9 0 0 1 10.8 3.5a9 9 0 1 0 9.7 9.7Z"/>',
   sparkle: '<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3Z"/>',
   camera: '<path d="m8 6 2-3h4l2 3h5v14H3V6h5Z"/><circle cx="12" cy="13" r="4"/>',
+  card: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h2m4 0h4"/>',
 };
 function icon(name) { return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ICONS.car}</svg>`; }
 function winterImage(name, className = '') {
@@ -232,6 +233,7 @@ const VIEW_TITLES = {
   exit: 'Xe ra',
   review: 'Cần kiểm tra',
   logs: 'Nhật ký nhận diện',
+  cards: 'Quản lý Thẻ RFID (5 Thẻ Trắng)',
   admin: 'Quản lý tài khoản',
 };
 
@@ -343,6 +345,24 @@ const RENDER = {
       $('#entry-plate').value = '51F-888.88';
       $('#entry-user-type').value = 'STAFF';
       toast('Đã nạp Thẻ Giảng viên mẫu (Miễn phí 0đ)');
+    });
+
+    $('#entry-card').addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const val = $('#entry-card').value.trim();
+        if (!val) return;
+        try {
+          const cRes = await api(`/cards/${encodeURIComponent(val)}`);
+          if (cRes && cRes.ok && cRes.card) {
+            const c = cRes.card;
+            if (c.user_type) $('#entry-user-type').value = c.user_type;
+            if (c.default_plate && !$('#entry-plate').value) $('#entry-plate').value = c.default_plate;
+            toast(`Đã nhận diện: ${c.label} (${c.user_type})`, 'info');
+          }
+        } catch (_) {}
+        $('#entry-submit').click();
+      }
     });
 
     $('#btn-nfc-entry').addEventListener('click', async () => {
@@ -465,6 +485,19 @@ const RENDER = {
     };
 
     $('#exit-card').addEventListener('input', (e) => matchCardToTicket(e.target.value));
+    $('#exit-card').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const val = $('#exit-card').value.trim();
+        if (!val) return;
+        matchCardToTicket(val);
+        setTimeout(() => {
+          if ($('#exit-ticket').value) {
+            $('#exit-submit').click();
+          }
+        }, 100);
+      }
+    });
 
     $('#btn-preset-sv-exit').addEventListener('click', () => {
       $('#exit-card').value = 'UTH_SV_2026_01';
@@ -731,6 +764,192 @@ const RENDER = {
       });
     }));
   },
+
+  async cards() {
+    const data = await api('/cards');
+    if (state.view !== 'cards') return;
+    const items = data.items || [];
+
+    const slotCards = [1, 2, 3, 4, 5].map(i => {
+      const found = items.find(c => c.card_uid === `CARD_WHITE_0${i}`) || items.find(c => (c.label || '').includes(`#${i}`));
+      const assigned = found ? (found.card_uid.startsWith('CARD_WHITE_') ? 'Chưa gán UID' : found.card_uid) : 'Trống';
+      const type = found?.user_type || 'STUDENT';
+      const typeBadge = type === 'STAFF' ? '<span class="status-badge" style="background:#10b981;color:#fff">Giảng viên (0đ)</span>' : (type === 'GUEST' ? '<span class="status-badge" style="background:#f59e0b;color:#fff">Khách vãng lai</span>' : '<span class="status-badge" style="background:#3b82f6;color:#fff">Sinh viên (5k)</span>');
+      return `
+        <div style="background:var(--card-bg, rgba(255,255,255,0.04));padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <strong>Thẻ Trắng #${i}</strong>
+            ${typeBadge}
+          </div>
+          <div style="font-size:13px;color:var(--muted)">Mã UID: <code style="color:#38bdf8;font-weight:bold">${esc(assigned)}</code></div>
+          <div style="font-size:12px;color:var(--muted)">Biển số gán: <strong>${esc(found?.default_plate || '—')}</strong></div>
+          <button type="button" class="btn btn-sm btn-soft btn-assign-slot" data-slot="${i}" style="margin-top:6px">
+            Gán mã thẻ vừa quẹt vào Slot #${i}
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    $('#view-content').innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <section class="card" style="border:2px dashed #38bdf8;background:rgba(56,189,248,0.04)">
+          <div class="card-heading">
+            <h3>⚡ Kiểm tra Đầu đọc USB 13.56MHz & Quẹt Thẻ Tức thì</h3>
+            <span class="status-badge" style="background:#0ea5e9;color:#fff">Live Wedge Reader</span>
+          </div>
+          <p style="margin:6px 0 14px;font-size:14px;color:var(--muted);line-height:1.5">
+            Cắm đầu đọc USB vào máy tính. Nhấp vào ô dưới và <strong>quẹt thẻ trắng hoặc thẻ sinh viên UTH</strong>. Đầu đọc sẽ kêu "Tít" và tự động hiển thị mã UID lên màn hình!
+          </p>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <input id="card-wedge-test" placeholder="Quẹt thẻ vào đây để đọc mã UID ngay lập tức..." style="flex:1;min-width:280px;font-size:16px;font-family:monospace;padding:12px 16px;border:2px solid #38bdf8;border-radius:8px;background:rgba(0,0,0,0.2)" autofocus />
+            <span id="wedge-last-scanned" style="padding:10px 16px;border-radius:8px;background:rgba(255,255,255,0.06);font-family:monospace;font-size:15px;font-weight:bold;color:#38bdf8">
+              Chưa có thẻ quẹt
+            </span>
+          </div>
+          <div id="wedge-quick-actions" style="margin-top:14px;display:none;padding:12px;background:rgba(16,185,129,0.1);border-radius:8px;border:1px solid #10b981">
+            <span style="font-size:13px;color:#10b981;font-weight:600">Thao tác nhanh cho thẻ vừa đọc:</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" id="quick-assign-buttons"></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-heading">
+            <h3>5 Thẻ Trắng Quản Lý (Combo 13.56MHz Shopee)</h3>
+            <button type="button" class="btn btn-sm btn-primary" id="btn-refresh-cards">Làm mới danh sách</button>
+          </div>
+          <p style="margin:4px 0 14px;font-size:13px;color:var(--muted)">
+            Khi nhận hàng, anh quẹt lần lượt từng thẻ vào ô trên, sau đó bấm nút Gán tương ứng để lưu vào hệ thống.
+          </p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(230px, 1fr));gap:12px">
+            ${slotCards}
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-heading">
+            <h3>Tất cả thẻ RFID đã đăng ký (${items.length} thẻ)</h3>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã UID</th>
+                  <th>Tên mô tả</th>
+                  <th>Phân loại</th>
+                  <th>Biển số gán</th>
+                  <th>Ghi chú</th>
+                  <th>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${items.map(c => `
+                  <tr>
+                    <td><code style="color:#38bdf8;font-weight:bold">${esc(c.card_uid)}</code></td>
+                    <td><strong>${esc(c.label)}</strong></td>
+                    <td>${c.user_type === 'STAFF' ? '<span class="status-badge" style="background:#10b981;color:#fff">Giảng viên (0đ)</span>' : (c.user_type === 'GUEST' ? '<span class="status-badge" style="background:#f59e0b;color:#fff">Khách vãng lai</span>' : '<span class="status-badge" style="background:#3b82f6;color:#fff">Sinh viên (5k)</span>')}</td>
+                    <td><strong>${esc(c.default_plate || '—')}</strong></td>
+                    <td style="color:var(--muted);font-size:13px">${esc(c.note || '—')}</td>
+                    <td>
+                      <button type="button" class="text-btn btn-delete-card" data-uid="${esc(c.card_uid)}" style="color:#ef4444">Xóa</button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    `;
+
+    let lastScannedUid = '';
+    const testInput = $('#card-wedge-test');
+    const updateScannedUid = (uid) => {
+      lastScannedUid = (uid || '').trim().toUpperCase();
+      if (!lastScannedUid) return;
+      $('#wedge-last-scanned').textContent = `Mã vừa đọc: ${lastScannedUid}`;
+      $('#wedge-quick-actions').style.display = 'block';
+      const container = $('#quick-assign-buttons');
+      container.innerHTML = [1, 2, 3, 4, 5].map(i => `
+        <button type="button" class="btn btn-sm btn-soft btn-quick-assign" data-slot="${i}">
+          Gán Thẻ Trắng #${i}
+        </button>
+      `).join('') + `
+        <button type="button" class="btn btn-sm btn-primary" id="btn-assign-uth-sv">
+          Gán Thẻ SV UTH (${lastScannedUid})
+        </button>
+      `;
+
+      container.querySelectorAll('.btn-quick-assign').forEach(b => {
+        b.addEventListener('click', async () => {
+          const slot = b.dataset.slot;
+          await api('/cards/assign-slot', {
+            method: 'POST',
+            body: new URLSearchParams({ slot_number: slot, real_card_uid: lastScannedUid })
+          });
+          toast(`Đã gán Thẻ Trắng #${slot} thành công!`, 'success');
+          showView('cards');
+        });
+      });
+
+      const btnUth = $('#btn-assign-uth-sv');
+      if (btnUth) {
+        btnUth.addEventListener('click', async () => {
+          await api('/cards', {
+            method: 'POST',
+            body: new URLSearchParams({
+              card_uid: lastScannedUid,
+              label: 'Thẻ Sinh viên UTH - Nguyễn Quang Huy',
+              user_type: 'STUDENT',
+              default_plate: '59X3-123.45',
+              note: 'Thẻ sinh viên Napas Contactless 13.56MHz'
+            })
+          });
+          toast(`Đã gán thẻ SV UTH thành công!`, 'success');
+          showView('cards');
+        });
+      }
+    };
+
+    testInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        updateScannedUid(testInput.value);
+        testInput.value = '';
+      }
+    });
+
+    testInput.addEventListener('input', (e) => {
+      if (e.target.value.length >= 8) {
+        updateScannedUid(e.target.value);
+      }
+    });
+
+    document.querySelectorAll('.btn-assign-slot').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const slot = btn.dataset.slot;
+        const targetUid = lastScannedUid || prompt(`Nhập mã UID thực tế cho Thẻ Trắng #${slot}:`);
+        if (!targetUid) return;
+        await api('/cards/assign-slot', {
+          method: 'POST',
+          body: new URLSearchParams({ slot_number: slot, real_card_uid: targetUid })
+        });
+        toast(`Đã gán Thẻ Trắng #${slot} vào UID ${targetUid}`, 'success');
+        showView('cards');
+      });
+    });
+
+    document.querySelectorAll('.btn-delete-card').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const uid = btn.dataset.uid;
+        if (!confirm(`Xóa thẻ ${uid}?`)) return;
+        await api(`/cards/${encodeURIComponent(uid)}`, { method: 'DELETE' });
+        toast(`Đã xóa thẻ ${uid}`);
+        showView('cards');
+      });
+    });
+
+    $('#btn-refresh-cards').addEventListener('click', () => showView('cards'));
+  },
 };
 
 function uploadMarkup(prefix) {
@@ -926,7 +1145,8 @@ let lastScannerTs = Date.now() / 1000;
 let scannerPollInterval = null;
 
 function initWirelessScannerListener() {
-  if (scannerPollInterval) clearInterval(scannerPollInterval);
+  if (typeof setInterval === 'undefined') return;
+  if (scannerPollInterval && typeof clearInterval !== 'undefined') clearInterval(scannerPollInterval);
   scannerPollInterval = setInterval(async () => {
     if (state.view !== 'entry' && state.view !== 'exit') return;
     try {

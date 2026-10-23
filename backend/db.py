@@ -236,6 +236,8 @@ def apply_migrations(db_path=None):
             cursor.execute(PARKING_EVENTS_SCHEMA)
             cursor.execute(CAMPUS_ZONES_SCHEMA)
             cursor.execute(BANK_TRANSACTIONS_SCHEMA)
+            from backend.card_service import ensure_rfid_cards_table
+            ensure_rfid_cards_table(db_path)
             cursor.executemany(
                 "INSERT OR IGNORE INTO campus_zones(zone_id, zone_name, max_capacity, current_occupied) VALUES (?, ?, ?, ?)",
                 DEFAULT_CAMPUS_ZONES,
